@@ -5,6 +5,7 @@ import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 import dev.dmitrij.kuzmiciov.app.util.Language;
@@ -19,11 +20,14 @@ public class App extends Application {
     public void start(Stage primaryStage) {
         instance = this;
         App.primaryStage = primaryStage;
-
         try {
-            Parent parent = FXMLLoader.load(getClass().getResource("/fxml/root.fxml"));
+            Pane parent = FXMLLoader.load(getClass().getResource("/fxml/root.fxml"));
             primaryStage.setScene(new Scene(parent));
             primaryStage.setTitle("Student App");
+            Platform.runLater(()-> {
+                primaryStage.setMinHeight(parent.getHeight());
+                primaryStage.setMinWidth(parent.getWidth());
+            });
             primaryStage.show();
         } catch(Exception e) {
             e.printStackTrace();
