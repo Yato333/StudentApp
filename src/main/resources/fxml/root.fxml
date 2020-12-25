@@ -6,28 +6,34 @@
 
 <!--suppress JavaFxDefaultTag -->
 
-<VBox prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="dev.dmitrij.kuzmiciov.app.controller.RootController">
-    <MenuBar BorderPane.alignment="CENTER" VBox.vgrow="NEVER">
-      <menus>
-        <Menu mnemonicParsing="false" text="File">
-          <items>
-            <MenuItem fx:id="openButton" mnemonicParsing="false" text="Open" />
-            <MenuItem fx:id="saveButton" mnemonicParsing="false" text="Save as" />
-            <MenuItem fx:id="closeButton" mnemonicParsing="false" text="Close" />
-          </items>
-        </Menu>
-      </menus>
-    </MenuBar>
-    <HBox fx:id="root" alignment="CENTER" spacing="10.0" VBox.vgrow="ALWAYS">
-      <ToolBar orientation="VERTICAL" HBox.hgrow="NEVER">
-        <items>
-          <Button mnemonicParsing="false" onAction="#onAddGroupButton" text="Add Group" />
-            <ChoiceBox fx:id="groupChoiceBox" prefHeight="25.0" prefWidth="75.0" />
-        </items>
-      </ToolBar>
-      <VBox.margin>
-         <Insets />
-      </VBox.margin>
-    </HBox>
-</VBox>
+<BorderPane fx:id="root" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="dev.dmitrij.kuzmiciov.app.controller.RootController">
+    <top>
+        <MenuBar BorderPane.alignment="CENTER" VBox.vgrow="NEVER">
+            <menus>
+                <Menu mnemonicParsing="false" text="File">
+                    <items>
+                        <MenuItem fx:id="openButton" mnemonicParsing="false" text="Open" />
+                        <MenuItem fx:id="saveButton" mnemonicParsing="false" text="Save as" />
+                        <MenuItem fx:id="closeButton" mnemonicParsing="false" text="Close" />
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
+    </top>
+    <left>
+        <ToolBar orientation="VERTICAL" HBox.hgrow="NEVER">
+            <items>
+                <ComboBox fx:id="groupChoiceBox" />
+                <Button mnemonicParsing="false" onAction="#onAddGroupButton" text="Add Group" />
+            <Separator />
+                <Button mnemonicParsing="false" onAction="#onAddStudentButton" text="Add Student" />
+            </items>
+         <BorderPane.margin>
+            <Insets />
+         </BorderPane.margin>
+         <padding>
+            <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+         </padding>
+        </ToolBar>
+    </left>
+</BorderPane>

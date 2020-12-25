@@ -33,6 +33,10 @@ public class Student {
     }
 
 
+    public Student() {
+        this("", "");
+    }
+
     public Student(String firstName, String lastName) {
         setFirstName(firstName);
         setLastname(lastName);

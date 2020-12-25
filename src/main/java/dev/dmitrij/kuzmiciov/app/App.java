@@ -3,16 +3,12 @@ package dev.dmitrij.kuzmiciov.app;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import dev.dmitrij.kuzmiciov.app.util.Language;
 
 public class App extends Application {
-    public static final Language language = Language.EN;
-    
     private static App instance;
     private static Stage primaryStage;
     

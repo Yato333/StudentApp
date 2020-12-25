@@ -6,42 +6,44 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-public class Group extends TreeSet<Student> {
-    private StringProperty name;
+public class Group {
+    private final StringProperty name = new SimpleStringProperty(this, "groupName");
     public String getName() {
-        return nameProperty().get();
+        return name.get();
     }
     public StringProperty nameProperty() {
-        if(name == null)
-            name = new SimpleStringProperty(this, "name");
         return name;
     }
     public void setName(String name) {
-        nameProperty().set(name);
+        this.name.set(name);
+    }
+
+    private final ArrayList<Student> students = new ArrayList<>();
+    public ArrayList<Student> getStudents() {
+        return students;
+    }
+
+    public Group() {
+        this("");
     }
 
     public Group(@NotNull String name) {
-        super(Comparator.comparing(Student::getLastName).thenComparing(Student::getFirstName));
         setName(name);
+    }
+
+    public Group(@NotNull Collection<? extends Student> c) {
+        this("", c);
     }
 
     public Group(@NotNull String name, @NotNull Collection<? extends Student> c) {
         this(name);
-        addAll(c);
+        students.addAll(c);
     }
 
     @Override
     public String toString() {
-        return getName();
+        return name.get();
     }
 
-    // Hidden Constructors
-    @SuppressWarnings("unused")
-    private Group() {}
-    @SuppressWarnings("unused")
-    private Group(@NotNull Collection<? extends Student> c) {}
-    @SuppressWarnings("unused")
-    private Group(SortedSet<Student> s) {}
-    @SuppressWarnings("unused")
-    private Group(Comparator<? super Student> comparator){}
+
 }
