@@ -6,7 +6,6 @@ import dev.dmitrij.kuzmiciov.app.data.Group;
 import dev.dmitrij.kuzmiciov.app.util.Regexes;
 import dev.dmitrij.kuzmiciov.app.util.file.Loader;
 import dev.dmitrij.kuzmiciov.app.util.file.Saver;
-import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -15,14 +14,28 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 
 import java.util.ArrayList;
 
+/**
+ * This is a Controller for the root of the {@link javafx.scene.Scene} of this {@link javafx.application.Application}
+ * @see Controller
+ * @see App
+ */
+
 public final class RootController extends Controller {
+    private static RootController instance;
+    public static RootController getInstance() {
+        return instance;
+    }
+
+    // Nodes loaded by FXML loader
     @FXML
-    private BorderPane
-            root;
+    private BorderPane root;
     @FXML
     private MenuItem
         openButton,
@@ -32,11 +45,23 @@ public final class RootController extends Controller {
     private ComboBox<Group>
         groupChoiceBox;
 
+    // Custom nodes added to the root after the FXML loading
     private TextField groupName;
     private RootTable table;
 
+    // List bounded with groupChoiceBox items property
     private final ArrayList<Group> groupList = new ArrayList<>();
 
+    /**
+     * Default constructor, required by implSpec
+     */
+    public RootController() {
+        instance = this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     @Override @FXML
     protected void initialize() {
         openButton.setOnAction(e -> Loader.load());

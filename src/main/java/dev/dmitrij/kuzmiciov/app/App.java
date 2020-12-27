@@ -8,10 +8,17 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
+/**
+ * Main class for this application.
+ * @see javafx.application.Application
+ * @author Dmitrij Kuzmiciov
+ * @version 1.0
+ */
+
 public class App extends Application {
     private static App instance;
     private static Stage primaryStage;
-    
+
     @Override
     public void start(Stage primaryStage) {
         instance = this;
@@ -31,14 +38,24 @@ public class App extends Application {
         }
     }
 
+    /**
+     *
+     * @return a running instance of this class
+     */
     public static App getInstance() {
         return instance;
     }
 
+    /**
+     * @return a primary {@link Stage} of the running instance
+     */
     public static Stage getPrimaryStage() {
         return primaryStage;
     }
 
+    /**
+     * Sends a request to close this application
+     */
     public static void close() {
         if(primaryStage != null)
             primaryStage.fireEvent(new WindowEvent(primaryStage, WindowEvent.WINDOW_CLOSE_REQUEST));
