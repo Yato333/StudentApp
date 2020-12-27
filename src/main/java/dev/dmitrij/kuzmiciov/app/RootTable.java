@@ -13,8 +13,8 @@ public class RootTable extends TableView<Student> {
 
         var firstNameColumn = new TableColumn<Student, String>("First Name");
         var lastNameColumn = new TableColumn<Student, String>("Last Name");
-        firstNameColumn.setCellValueFactory(new PropertyValueFactory<>("firstName"));
-        lastNameColumn.setCellValueFactory(new PropertyValueFactory<>("lastName"));
+        firstNameColumn.setCellValueFactory(new PropertyValueFactory<>(Student.FIRST_NAME_PROPERTY_NAME));
+        lastNameColumn.setCellValueFactory(new PropertyValueFactory<>(Student.LAST_NAME_PROPERTY_NAME));
         getColumns().add(firstNameColumn);
         getColumns().add(lastNameColumn);
 

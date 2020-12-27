@@ -4,6 +4,9 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 
 public class Student {
+    public static final String
+            FIRST_NAME_PROPERTY_NAME = "firstName",
+            LAST_NAME_PROPERTY_NAME = "lastName";
 
     StringProperty firstName;
     public String getFirstName() {
@@ -11,7 +14,7 @@ public class Student {
     }
     public StringProperty firstNameProperty() {
         if(firstName == null)
-            firstName = new SimpleStringProperty(this, "firstName");
+            firstName = new SimpleStringProperty(this, FIRST_NAME_PROPERTY_NAME);
         return firstName;
     }
     public void setFirstName(String firstName) {
@@ -25,7 +28,7 @@ public class Student {
     }
     public StringProperty lastNameProperty() {
         if(lastName == null)
-            lastName = new SimpleStringProperty(this, "lastName");
+            lastName = new SimpleStringProperty(this, LAST_NAME_PROPERTY_NAME);
         return lastName;
     }
     public void setLastname(String lastName) {
