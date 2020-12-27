@@ -3,6 +3,7 @@ package dev.dmitrij.kuzmiciov.app.controller;
 import dev.dmitrij.kuzmiciov.app.App;
 import dev.dmitrij.kuzmiciov.app.RootTable;
 import dev.dmitrij.kuzmiciov.app.data.Group;
+import dev.dmitrij.kuzmiciov.app.data.Student;
 import dev.dmitrij.kuzmiciov.app.util.Regexes;
 import dev.dmitrij.kuzmiciov.app.util.file.Loader;
 import dev.dmitrij.kuzmiciov.app.util.file.Saver;
@@ -14,12 +15,12 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
+import javafx.stage.Modality;
 
 import java.util.ArrayList;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This is a Controller for the root of the {@link javafx.scene.Scene} of this {@link javafx.application.Application}
@@ -44,6 +45,9 @@ public final class RootController extends Controller {
     @FXML
     private ComboBox<Group>
         groupChoiceBox;
+    @FXML
+    private Button
+        addStudentButton;
 
     // Custom nodes added to the root after the FXML loading
     private TextField groupName;
@@ -130,6 +134,8 @@ public final class RootController extends Controller {
         VBox.setVgrow(groupName, Priority.NEVER);
         VBox.setVgrow(table, Priority.ALWAYS);
 
+        addStudentButton.setDisable(true);
+
         // Binding groupList to observable list
         groupChoiceBox.setItems(FXCollections.observableArrayList(groupList));
         groupChoiceBox.setPromptText("Select Group");
@@ -140,10 +146,12 @@ public final class RootController extends Controller {
                 if(newValue == null) {
                     groupName.clear();
                     editButton.setVisible(false);
+                    addStudentButton.setDisable(true);
                 } else {
                     groupName.setText(newValue.getName());
-                    table.setItems(FXCollections.observableList(newValue.getStudents()));
+                    table.setItems(newValue.getStudents());
                     editButton.setVisible(true);
+                    addStudentButton.setDisable(false);
                 }
             }
         });
@@ -161,6 +169,48 @@ public final class RootController extends Controller {
 
     @FXML
     private void onAddStudentButton() {
+        TextField firstNameField = new TextField(), lastNameField = new TextField();
 
+        var content = new GridPane();
+        content.addRow(0, new Label("First Name"), firstNameField);
+        content.addRow(1, new Label("Last Name"), lastNameField);
+        content.setStyle("-fx-vgap: 10; -fx-hgap: 10");
+
+        var dialog = new Dialog<Optional<Student>>();
+        dialog.setTitle("Add a Student");
+        dialog.getDialogPane().setContent(content);
+        dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
+        dialog.initModality(Modality.APPLICATION_MODAL);
+
+        dialog.setResultConverter(buttonType -> {
+            if(buttonType == ButtonType.OK) {
+                boolean invalid = false;
+                if (!firstNameField.getText().strip().matches("^[A-Z][a-z]+$")) {
+                    firstNameField.setText("");
+                    invalid = true;
+                }
+                if (!lastNameField.getText().strip().matches("^[A-Z][a-z]+$")) {
+                    lastNameField.setText("");
+                    invalid = true;
+                }
+
+                if (invalid)
+                    return Optional.empty();
+                else
+                    return Optional.of(new Student(firstNameField.getText().strip(), lastNameField.getText().strip()));
+            }
+            //noinspection OptionalAssignedToNull
+            return null;
+        });
+
+        AtomicBoolean invalidInput = new AtomicBoolean(false);
+        do {
+            invalidInput.set(false);
+            var result = dialog.showAndWait();
+            result.ifPresent(optionalStudent -> optionalStudent.ifPresentOrElse(
+                    student -> groupChoiceBox.getValue().getStudents().add(student),
+                    () -> invalidInput.set(true)
+            ));
+        } while(invalidInput.get());
     }
 }

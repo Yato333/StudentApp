@@ -26,7 +26,7 @@
                 <ComboBox fx:id="groupChoiceBox" />
                 <Button mnemonicParsing="false" onAction="#onAddGroupButton" text="Add Group" />
             <Separator />
-                <Button mnemonicParsing="false" onAction="#onAddStudentButton" text="Add Student" />
+                <Button fx:id="addStudentButton" mnemonicParsing="false" onAction="#onAddStudentButton" text="Add Student" />
             </items>
          <BorderPane.margin>
             <Insets />

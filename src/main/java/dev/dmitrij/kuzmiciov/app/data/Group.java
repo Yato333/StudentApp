@@ -1,9 +1,10 @@
 package dev.dmitrij.kuzmiciov.app.data;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 public class Group {
     private String name;
@@ -15,8 +16,8 @@ public class Group {
     }
 
     private final ArrayList<Student> students = new ArrayList<>();
-    public ArrayList<Student> getStudents() {
-        return students;
+    public ObservableList<Student> getStudents() {
+        return FXCollections.observableList(students);
     }
 
     public Group() {
@@ -40,6 +41,4 @@ public class Group {
     public String toString() {
         return getName();
     }
-
-
 }
