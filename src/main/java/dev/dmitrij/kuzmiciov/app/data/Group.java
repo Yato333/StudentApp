@@ -1,21 +1,17 @@
 package dev.dmitrij.kuzmiciov.app.data;
 
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
 
 public class Group {
-    private final StringProperty name = new SimpleStringProperty(this, "groupName");
+    private String name;
     public String getName() {
-        return name.get();
-    }
-    public StringProperty nameProperty() {
         return name;
     }
     public void setName(String name) {
-        this.name.set(name);
+        this.name = name;
     }
 
     private final ArrayList<Student> students = new ArrayList<>();
@@ -42,7 +38,7 @@ public class Group {
 
     @Override
     public String toString() {
-        return name.get();
+        return getName();
     }
 
 
