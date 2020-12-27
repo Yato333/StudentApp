@@ -83,7 +83,10 @@ public final class RootController extends Controller {
         // Handling group name editing
         groupName.focusedProperty().addListener((obsVal, wasFocused, nowFocused) -> {
             if(!nowFocused) {
-                if(groupName.getText().matches(Regexes.GROUP_EN.regex)) {
+                if(groupName.getText().strip().matches(Regexes.GROUP_EN.regex)) {
+                    var name = groupName.getText().strip();
+                    groupChoiceBox.getValue().setName(name);
+
                     var selModel = groupChoiceBox.getSelectionModel();
                     int prevIndex = selModel.getSelectedIndex();
                     selModel.clearSelection();
@@ -134,16 +137,11 @@ public final class RootController extends Controller {
         // Handling group selection change
         groupChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue != oldValue) {
-                if(oldValue == null)
-                    groupName.textProperty().unbind();
-                else
-                    groupName.textProperty().unbindBidirectional(oldValue.nameProperty());
-
                 if(newValue == null) {
                     groupName.clear();
                     editButton.setVisible(false);
                 } else {
-                    groupName.textProperty().bindBidirectional(newValue.nameProperty());
+                    groupName.setText(newValue.getName());
                     table.setItems(FXCollections.observableList(newValue.getStudents()));
                     editButton.setVisible(true);
                 }
