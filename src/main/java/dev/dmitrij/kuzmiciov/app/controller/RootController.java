@@ -8,8 +8,6 @@ import dev.dmitrij.kuzmiciov.app.util.Regexes;
 import dev.dmitrij.kuzmiciov.app.util.file.Loader;
 import dev.dmitrij.kuzmiciov.app.util.file.Saver;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -21,9 +19,6 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
-
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * This is a Controller for the root of the {@link javafx.scene.Scene} of this {@link javafx.application.Application}
@@ -51,14 +46,12 @@ public final class RootController extends Controller {
     @FXML
     private Button
         addStudentButton,
+        editGroupButton,
         removeGroupButton;
 
     // Custom nodes added to the root after the FXML loading
     private TextField groupName;
     private RootTable table;
-
-    // List bounded with groupChoiceBox items property
-    //private final ArrayList<Group> groupList = new ArrayList<>();
 
     /**
      * Default constructor, required by implSpec
@@ -72,10 +65,12 @@ public final class RootController extends Controller {
      */
     @Override @FXML
     protected void initialize() {
+        // Assigning toolbar buttons their actions
         openButton.setOnAction(e -> Loader.load());
         saveButton.setOnAction(e -> Saver.save());
         closeButton.setOnAction(e -> App.close());
 
+        // Handling group name label
         groupName = new TextField();
         var groupNameDefaultStyle = groupName.getStyle();
         var groupNameStyle = "-fx-background-color: transparent; -fx-background-insets: 0px";
@@ -120,6 +115,7 @@ public final class RootController extends Controller {
             groupName.setEditable(true);
             groupName.requestFocus();
         });
+        editButton.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
 
         // Wrapping group name and the button in a HBox
         var groupNameWrapper = new HBox(10, editButton, groupName);
@@ -138,28 +134,24 @@ public final class RootController extends Controller {
         VBox.setVgrow(groupName, Priority.NEVER);
         VBox.setVgrow(table, Priority.ALWAYS);
 
-        // Binding groupList to observable list
-        //groupChoiceBox.setItems(FXCollections.observableArrayList(groupList));
+        // Configuring groupChoiceBox
         groupChoiceBox.setPromptText("Select Group");
-
-        // Handling group selection change
         groupChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue != oldValue) {
                 if(newValue == null) {
                     groupName.clear();
                     table.setItems(FXCollections.emptyObservableList());
-                    editButton.setVisible(false);
-                    addStudentButton.setDisable(true);
-                    removeGroupButton.setDisable(true);
                 } else {
                     groupName.setText(newValue.getName());
                     table.setItems(newValue.getStudents());
-                    editButton.setVisible(true);
-                    addStudentButton.setDisable(false);
-                    removeGroupButton.setDisable(false);
                 }
             }
         });
+
+        // Handle button availability
+        addStudentButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
+        editGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
+        removeGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
     }
 
     public RootTable getTable() {
