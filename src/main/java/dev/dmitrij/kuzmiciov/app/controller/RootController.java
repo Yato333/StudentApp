@@ -7,7 +7,11 @@ import dev.dmitrij.kuzmiciov.app.data.Student;
 import dev.dmitrij.kuzmiciov.app.util.Regexes;
 import dev.dmitrij.kuzmiciov.app.util.file.Loader;
 import dev.dmitrij.kuzmiciov.app.util.file.Saver;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ChangeListener;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -19,8 +23,7 @@ import javafx.scene.layout.*;
 import javafx.stage.Modality;
 
 import java.util.ArrayList;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.List;
 
 /**
  * This is a Controller for the root of the {@link javafx.scene.Scene} of this {@link javafx.application.Application}
@@ -47,14 +50,15 @@ public final class RootController extends Controller {
         groupChoiceBox;
     @FXML
     private Button
-        addStudentButton;
+        addStudentButton,
+        removeGroupButton;
 
     // Custom nodes added to the root after the FXML loading
     private TextField groupName;
     private RootTable table;
 
     // List bounded with groupChoiceBox items property
-    private final ArrayList<Group> groupList = new ArrayList<>();
+    //private final ArrayList<Group> groupList = new ArrayList<>();
 
     /**
      * Default constructor, required by implSpec
@@ -106,7 +110,7 @@ public final class RootController extends Controller {
         });
 
         // Creating the 'edit group name' button
-        var editImage = new Image("/edit_icon.png", 16, 16, true, true);
+        var editImage = new Image("/img/edit_icon.png", 16, 16, true, true);
         var editButton = new Button();
         editButton.setGraphic(new ImageView(editImage));
         editButton.setVisible(false);
@@ -134,10 +138,8 @@ public final class RootController extends Controller {
         VBox.setVgrow(groupName, Priority.NEVER);
         VBox.setVgrow(table, Priority.ALWAYS);
 
-        addStudentButton.setDisable(true);
-
         // Binding groupList to observable list
-        groupChoiceBox.setItems(FXCollections.observableArrayList(groupList));
+        //groupChoiceBox.setItems(FXCollections.observableArrayList(groupList));
         groupChoiceBox.setPromptText("Select Group");
 
         // Handling group selection change
@@ -145,13 +147,16 @@ public final class RootController extends Controller {
             if(newValue != oldValue) {
                 if(newValue == null) {
                     groupName.clear();
+                    table.setItems(FXCollections.emptyObservableList());
                     editButton.setVisible(false);
                     addStudentButton.setDisable(true);
+                    removeGroupButton.setDisable(true);
                 } else {
                     groupName.setText(newValue.getName());
                     table.setItems(newValue.getStudents());
                     editButton.setVisible(true);
                     addStudentButton.setDisable(false);
+                    removeGroupButton.setDisable(false);
                 }
             }
         });
@@ -170,47 +175,69 @@ public final class RootController extends Controller {
     @FXML
     private void onAddStudentButton() {
         TextField firstNameField = new TextField(), lastNameField = new TextField();
+        firstNameField.setTooltip(new Tooltip("Has to start with a capital letter. (John)"));
+        lastNameField.setTooltip(new Tooltip("Has to start with a capital letter. (Smith)"));
+
+        var dialog = new Dialog<Student>();
+        dialog.setTitle("Add a Student");
+        dialog.initModality(Modality.APPLICATION_MODAL);
 
         var content = new GridPane();
         content.addRow(0, new Label("First Name"), firstNameField);
         content.addRow(1, new Label("Last Name"), lastNameField);
         content.setStyle("-fx-vgap: 10; -fx-hgap: 10");
-
-        var dialog = new Dialog<Optional<Student>>();
-        dialog.setTitle("Add a Student");
         dialog.getDialogPane().setContent(content);
-        dialog.getDialogPane().getButtonTypes().add(ButtonType.OK);
-        dialog.initModality(Modality.APPLICATION_MODAL);
+
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
+
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.setDisable(true);
+        okButton.addEventFilter(ActionEvent.ACTION, event -> {
+            String  firstName = firstNameField.getText().strip(),
+                    lastName = lastNameField.getText().strip();
+            boolean valid = true;
+
+            if(!firstName.matches(Regexes.NAME_EN.regex)) {
+                valid = false;
+                Platform.runLater(firstNameField::clear);
+            }
+            if(!lastName.matches(Regexes.NAME_EN.regex)) {
+                valid = false;
+                Platform.runLater(lastNameField::clear);
+            }
+
+            if(!valid)
+                event.consume();
+        });
+        // Disable the button if some of the fields are empty
+        okButton.disableProperty().bind(firstNameField.textProperty().isEmpty().or(lastNameField.textProperty().isEmpty()));
 
         dialog.setResultConverter(buttonType -> {
-            if(buttonType == ButtonType.OK) {
-                boolean invalid = false;
-                if (!firstNameField.getText().strip().matches("^[A-Z][a-z]+$")) {
-                    firstNameField.setText("");
-                    invalid = true;
-                }
-                if (!lastNameField.getText().strip().matches("^[A-Z][a-z]+$")) {
-                    lastNameField.setText("");
-                    invalid = true;
-                }
-
-                if (invalid)
-                    return Optional.empty();
-                else
-                    return Optional.of(new Student(firstNameField.getText().strip(), lastNameField.getText().strip()));
-            }
-            //noinspection OptionalAssignedToNull
-            return null;
+           if(buttonType == ButtonType.OK)
+               return new Student(firstNameField.getText(), lastNameField.getText());
+           return null;
         });
 
-        AtomicBoolean invalidInput = new AtomicBoolean(false);
-        do {
-            invalidInput.set(false);
-            var result = dialog.showAndWait();
-            result.ifPresent(optionalStudent -> optionalStudent.ifPresentOrElse(
-                    student -> groupChoiceBox.getValue().getStudents().add(student),
-                    () -> invalidInput.set(true)
-            ));
-        } while(invalidInput.get());
+        var student = dialog.showAndWait();
+        student.ifPresent(student1 -> {
+            groupChoiceBox.getValue().getStudents().add(student1);
+            table.refresh();
+        });
+    }
+
+    @FXML
+    private void onRemoveGroupButton() {
+        Alert warning = new Alert(Alert.AlertType.CONFIRMATION);
+        warning.initModality(Modality.APPLICATION_MODAL);
+        warning.setTitle("Warning");
+        warning.setHeaderText("Are you sure you want to remove this group?");
+
+        var result = warning.showAndWait();
+        result.ifPresent(buttonType -> {
+            if(buttonType == ButtonType.OK) {
+                groupChoiceBox.getItems().remove(groupChoiceBox.getValue());
+                groupChoiceBox.getSelectionModel().clearSelection();
+            }
+        });
     }
 }

@@ -13,10 +13,15 @@ public class RootTable extends TableView<Student> {
 
         var firstNameColumn = new TableColumn<Student, String>("First Name");
         var lastNameColumn = new TableColumn<Student, String>("Last Name");
+        var averageColumn = new TableColumn<Student, Float>("Average");
+
         firstNameColumn.setCellValueFactory(new PropertyValueFactory<>(Student.FIRST_NAME_PROPERTY_NAME));
         lastNameColumn.setCellValueFactory(new PropertyValueFactory<>(Student.LAST_NAME_PROPERTY_NAME));
+        averageColumn.setCellValueFactory(new PropertyValueFactory<>(Student.AVERAGE_PROPERTY_NAME));
+
         getColumns().add(firstNameColumn);
         getColumns().add(lastNameColumn);
+        getColumns().add(averageColumn);
 
         setStyle("-fx-pref-width: 300; -fx-pref-height: 100;");
     }

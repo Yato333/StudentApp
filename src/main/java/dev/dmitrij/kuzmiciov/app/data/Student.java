@@ -1,38 +1,47 @@
 package dev.dmitrij.kuzmiciov.app.data;
 
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import javafx.beans.property.*;
 
 public class Student {
     public static final String
             FIRST_NAME_PROPERTY_NAME = "firstName",
-            LAST_NAME_PROPERTY_NAME = "lastName";
+            LAST_NAME_PROPERTY_NAME = "lastName",
+            AVERAGE_PROPERTY_NAME = "average";
 
-    StringProperty firstName;
+
+    StringProperty firstName = new SimpleStringProperty(this, FIRST_NAME_PROPERTY_NAME);
     public String getFirstName() {
-        return firstNameProperty().get();
+        return firstName.get();
     }
     public StringProperty firstNameProperty() {
-        if(firstName == null)
-            firstName = new SimpleStringProperty(this, FIRST_NAME_PROPERTY_NAME);
         return firstName;
     }
     public void setFirstName(String firstName) {
-        firstNameProperty().set(firstName);
+        this.firstName.set(firstName);
     }
 
 
-    StringProperty lastName;
+    StringProperty lastName = new SimpleStringProperty(this, LAST_NAME_PROPERTY_NAME);
     public String getLastName() {
-        return lastNameProperty().get();
+        return lastName.get();
     }
     public StringProperty lastNameProperty() {
-        if(lastName == null)
-            lastName = new SimpleStringProperty(this, LAST_NAME_PROPERTY_NAME);
         return lastName;
     }
-    public void setLastname(String lastName) {
-        lastNameProperty().set(lastName);
+    public void setLastName(String lastName) {
+        this.lastName.set(lastName);
+    }
+
+
+    FloatProperty average = new SimpleFloatProperty(this, AVERAGE_PROPERTY_NAME);
+    public float getAverage() {
+        return average.get();
+    }
+    public FloatProperty averageProperty() {
+        return average;
+    }
+    public void setAverage(float average) {
+        this.average.set(average);
     }
 
 
@@ -42,6 +51,7 @@ public class Student {
 
     public Student(String firstName, String lastName) {
         setFirstName(firstName);
-        setLastname(lastName);
+        setLastName(lastName);
+        setAverage(0);
     }
 }
