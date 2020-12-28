@@ -1,6 +1,12 @@
 package dev.dmitrij.kuzmiciov.app.data;
 
 import javafx.beans.property.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
+
+import java.time.LocalDate;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Student {
     public static final String
@@ -8,8 +14,12 @@ public class Student {
             LAST_NAME_PROPERTY_NAME = "lastName",
             AVERAGE_PROPERTY_NAME = "average";
 
+    private final Map<LocalDate, Mark> markMap = new LinkedHashMap<>();
+    public ObservableMap<LocalDate, Mark> getMarkMap() {
+        return FXCollections.observableMap(markMap);
+    }
 
-    StringProperty firstName = new SimpleStringProperty(this, FIRST_NAME_PROPERTY_NAME);
+    private final StringProperty firstName = new SimpleStringProperty(this, FIRST_NAME_PROPERTY_NAME);
     public String getFirstName() {
         return firstName.get();
     }
@@ -21,7 +31,7 @@ public class Student {
     }
 
 
-    StringProperty lastName = new SimpleStringProperty(this, LAST_NAME_PROPERTY_NAME);
+    private final StringProperty lastName = new SimpleStringProperty(this, LAST_NAME_PROPERTY_NAME);
     public String getLastName() {
         return lastName.get();
     }
@@ -33,7 +43,7 @@ public class Student {
     }
 
 
-    FloatProperty average = new SimpleFloatProperty(this, AVERAGE_PROPERTY_NAME);
+    private final FloatProperty average = new SimpleFloatProperty(this, AVERAGE_PROPERTY_NAME);
     public float getAverage() {
         return average.get();
     }

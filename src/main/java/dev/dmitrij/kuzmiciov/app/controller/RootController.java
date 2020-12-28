@@ -19,6 +19,11 @@ import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
+import javafx.util.StringConverter;
+import javafx.util.converter.LocalDateStringConverter;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 /**
  * This is a Controller for the root of the {@link javafx.scene.Scene} of this {@link javafx.application.Application}
@@ -51,6 +56,7 @@ public final class RootController extends Controller {
 
     // Custom nodes added to the root after the FXML loading
     private TextField groupName;
+    private DatePicker datePicker;
     private RootTable table;
 
     /**
@@ -60,29 +66,22 @@ public final class RootController extends Controller {
         instance = this;
     }
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override @FXML
-    protected void initialize() {
-        // Assigning toolbar buttons their actions
-        openButton.setOnAction(e -> Loader.load());
-        saveButton.setOnAction(e -> Saver.save());
-        closeButton.setOnAction(e -> App.close());
+    private BorderPane createTableHeader() {
+        var tableHeader = new BorderPane();
+
 
         // Handling group name label
         groupName = new TextField();
+        groupName.setAlignment(Pos.CENTER);
         var groupNameDefaultStyle = groupName.getStyle();
         var groupNameStyle = "-fx-background-color: transparent; -fx-background-insets: 0px";
         groupName.setStyle(groupNameStyle);
         groupName.setEditable(false);
-
         // Making it commit change on ENTER
         groupName.setOnKeyPressed(keyEvent -> {
             if(keyEvent.getCode() == KeyCode.ENTER)
                 groupName.getParent().requestFocus();
         });
-
         // Handling group name editing
         groupName.focusedProperty().addListener((obsVal, wasFocused, nowFocused) -> {
             if(!nowFocused) {
@@ -104,6 +103,9 @@ public final class RootController extends Controller {
             }
         });
 
+        tableHeader.setCenter(groupName);
+
+
         // Creating the 'edit group name' button
         var editImage = new Image("/img/edit_icon.png", 16, 16, true, true);
         var editButton = new Button();
@@ -116,17 +118,33 @@ public final class RootController extends Controller {
             groupName.requestFocus();
         });
         editButton.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
+        tableHeader.setLeft(editButton);
 
-        // Wrapping group name and the button in a HBox
-        var groupNameWrapper = new HBox(10, editButton, groupName);
-        groupNameWrapper.setAlignment(Pos.CENTER);
+
+        datePicker = new DatePicker(LocalDate.now());
+        tableHeader.setRight(datePicker);
+
+        return tableHeader;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override @FXML
+    protected void initialize() {
+        // Assigning toolbar buttons their actions
+        openButton.setOnAction(e -> Loader.load());
+        saveButton.setOnAction(e -> Saver.save());
+        closeButton.setOnAction(e -> App.close());
+
+        var tableHeader = createTableHeader();
 
         // Creating the table
-        table = new RootTable();
+        table = new RootTable(datePicker);
         table.setEditable(true);
 
         // Adding the table are to the parent node
-        var tableWrapper = new VBox(10, groupNameWrapper, table);
+        var tableWrapper = new VBox(10, tableHeader, table);
         root.setCenter(tableWrapper);
         BorderPane.setMargin(tableWrapper, new Insets(20));
 
@@ -148,7 +166,7 @@ public final class RootController extends Controller {
             }
         });
 
-        // Handle button availability
+        // Handle button availability for the user
         addStudentButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         editGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         removeGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
@@ -215,6 +233,11 @@ public final class RootController extends Controller {
             groupChoiceBox.getValue().getStudents().add(student1);
             table.refresh();
         });
+    }
+
+    @FXML
+    private void onEditGroupButton() {
+
     }
 
     @FXML

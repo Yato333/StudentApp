@@ -29,7 +29,7 @@
                       <Button mnemonicParsing="false" onAction="#onAddGroupButton" text="Add Group" />
                   <Separator />
                       <Button fx:id="addStudentButton" disable="true" mnemonicParsing="false" onAction="#onAddStudentButton" text="Add Student" />
-                  <Button fx:id="editGroupButton" disable="true" mnemonicParsing="false" text="Edit Group" />
+                  <Button fx:id="editGroupButton" disable="true" mnemonicParsing="false" onAction="#onEditGroupButton" text="Edit Group" />
                   <Button fx:id="removeGroupButton" disable="true" mnemonicParsing="false" onAction="#onRemoveGroupButton" text="Remove Group" textFill="RED" />
                </children>
                <padding>

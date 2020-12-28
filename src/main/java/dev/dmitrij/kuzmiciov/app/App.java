@@ -28,8 +28,8 @@ public class App extends Application {
             primaryStage.setScene(new Scene(parent));
             primaryStage.setTitle("Student App");
             Platform.runLater(()-> {
-                primaryStage.setMinHeight(parent.getHeight());
-                primaryStage.setMinWidth(parent.getWidth());
+                primaryStage.setMinHeight(720);
+                primaryStage.setMinWidth(1280);
             });
             primaryStage.show();
         } catch(Exception e) {
