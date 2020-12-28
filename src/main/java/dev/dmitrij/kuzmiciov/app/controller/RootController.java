@@ -1,139 +1,258 @@
 package dev.dmitrij.kuzmiciov.app.controller;
 
 import dev.dmitrij.kuzmiciov.app.App;
+import dev.dmitrij.kuzmiciov.app.RootTable;
 import dev.dmitrij.kuzmiciov.app.data.Group;
-import dev.dmitrij.kuzmiciov.app.data.Groups;
-import dev.dmitrij.kuzmiciov.app.dialog.AddGroupDialog;
+import dev.dmitrij.kuzmiciov.app.data.Student;
+import dev.dmitrij.kuzmiciov.app.util.Regexes;
 import dev.dmitrij.kuzmiciov.app.util.file.Loader;
 import dev.dmitrij.kuzmiciov.app.util.file.Saver;
-import dev.dmitrij.kuzmiciov.app.util.shape.BorderRect;
 import javafx.application.Platform;
+import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.shape.Rectangle;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.KeyCode;
+import javafx.scene.layout.*;
+import javafx.stage.Modality;
+import javafx.util.StringConverter;
+import javafx.util.converter.LocalDateStringConverter;
 
-import java.text.DecimalFormat;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+/**
+ * This is a Controller for the root of the {@link javafx.scene.Scene} of this {@link javafx.application.Application}
+ * @see Controller
+ * @see App
+ */
 
 public final class RootController extends Controller {
     private static RootController instance;
-    private static final DecimalFormat DAY_FORMAT = new DecimalFormat("00");
+    public static RootController getInstance() {
+        return instance;
+    }
 
+    // Nodes loaded by FXML loader
+    @FXML
+    private BorderPane root;
     @FXML
     private MenuItem
         openButton,
         saveButton,
         closeButton;
-    
     @FXML
-    private ChoiceBox<Group>
+    private ComboBox<Group>
         groupChoiceBox;
-    private Group previousGroup = null;
-
     @FXML
-    private GridPane table;
+    private Button
+        addStudentButton,
+        editGroupButton,
+        removeGroupButton;
 
-    Dialog<Boolean>
-        addGroupDialog;
+    // Custom nodes added to the root after the FXML loading
+    private TextField groupName;
+    private DatePicker datePicker;
+    private RootTable table;
 
-    @Override @FXML
-    protected void initialize() throws InitError {
+    /**
+     * Default constructor, required by implSpec
+     */
+    public RootController() {
         instance = this;
-        try {
-            openButton.setOnAction(e -> Loader.load());
-            saveButton.setOnAction(e -> Saver.save());
-            closeButton.setOnAction(e -> App.close());
+    }
 
-            createTable();
-            groupChoiceBox.setOnHiding(e -> {
-                if(groupChoiceBox.getValue() != previousGroup) {
-                    setGroup(groupChoiceBox.getValue());
-                    previousGroup = groupChoiceBox.getValue();
+    private BorderPane createTableHeader() {
+        var tableHeader = new BorderPane();
+
+
+        // Handling group name label
+        groupName = new TextField();
+        groupName.setAlignment(Pos.CENTER);
+        var groupNameDefaultStyle = groupName.getStyle();
+        var groupNameStyle = "-fx-background-color: transparent; -fx-background-insets: 0px";
+        groupName.setStyle(groupNameStyle);
+        groupName.setEditable(false);
+        // Making it commit change on ENTER
+        groupName.setOnKeyPressed(keyEvent -> {
+            if(keyEvent.getCode() == KeyCode.ENTER)
+                groupName.getParent().requestFocus();
+        });
+        // Handling group name editing
+        groupName.focusedProperty().addListener((obsVal, wasFocused, nowFocused) -> {
+            if(!nowFocused) {
+                if(groupName.getText().strip().matches(Regexes.GROUP_EN.regex)) {
+                    var name = groupName.getText().strip();
+                    groupChoiceBox.getValue().setName(name);
+
+                    var selModel = groupChoiceBox.getSelectionModel();
+                    int prevIndex = selModel.getSelectedIndex();
+                    selModel.clearSelection();
+                    selModel.clearAndSelect(prevIndex);
+
+                    groupName.setStyle(groupNameStyle);
+                    groupName.setEditable(false);
+                } else {
+                    groupName.setText("");
+                    groupName.requestFocus();
                 }
-            });
+            }
+        });
 
-            addGroupDialog = new AddGroupDialog();
+        tableHeader.setCenter(groupName);
 
-            // Making sure the table elements do not clip
-            Platform.runLater(() -> {
-                App.getPrimaryStage().setMinWidth(table.getWidth() + 300);
-                App.getPrimaryStage().setMinHeight(table.getHeight());
-            });
-        } catch(Exception e) {
-            throw new InitError(e);
-        }
+
+        // Creating the 'edit group name' button
+        var editImage = new Image("/img/edit_icon.png", 16, 16, true, true);
+        var editButton = new Button();
+        editButton.setGraphic(new ImageView(editImage));
+        editButton.setVisible(false);
+        editButton.setTooltip(new Tooltip("Edit group name"));
+        editButton.setOnAction(e -> {
+            groupName.setStyle(groupNameDefaultStyle);
+            groupName.setEditable(true);
+            groupName.requestFocus();
+        });
+        editButton.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
+        tableHeader.setLeft(editButton);
+
+
+        datePicker = new DatePicker(LocalDate.now());
+        tableHeader.setRight(datePicker);
+
+        return tableHeader;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override @FXML
+    protected void initialize() {
+        // Assigning toolbar buttons their actions
+        openButton.setOnAction(e -> Loader.load());
+        saveButton.setOnAction(e -> Saver.save());
+        closeButton.setOnAction(e -> App.close());
+
+        var tableHeader = createTableHeader();
+
+        // Creating the table
+        table = new RootTable(datePicker);
+        table.setEditable(true);
+
+        // Adding the table are to the parent node
+        var tableWrapper = new VBox(10, tableHeader, table);
+        root.setCenter(tableWrapper);
+        BorderPane.setMargin(tableWrapper, new Insets(20));
+
+        // Making sure that only the table expands vertically
+        VBox.setVgrow(groupName, Priority.NEVER);
+        VBox.setVgrow(table, Priority.ALWAYS);
+
+        // Configuring groupChoiceBox
+        groupChoiceBox.setPromptText("Select Group");
+        groupChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue != oldValue) {
+                if(newValue == null) {
+                    groupName.clear();
+                    table.setItems(FXCollections.emptyObservableList());
+                } else {
+                    groupName.setText(newValue.getName());
+                    table.setItems(newValue.getStudents());
+                }
+            }
+        });
+
+        // Handle button availability for the user
+        addStudentButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
+        editGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
+        removeGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
+    }
+
+    public RootTable getTable() {
+        return table;
     }
 
     @FXML
     private void onAddGroupButton() {
-        try {
-            boolean invalidName;
-            do {
-                var optionalResult = addGroupDialog.showAndWait();
-                invalidName = optionalResult.orElse(false);
-
-                if (invalidName)
-                    new Alert(Alert.AlertType.ERROR, "Group name is invalid", ButtonType.OK).showAndWait();
-            } while(invalidName);
-        } catch (Exception exception) {
-            new Alert(Alert.AlertType.ERROR, exception.getMessage(), ButtonType.OK).showAndWait();
-        }
+        groupChoiceBox.getItems().add(new Group(String.valueOf(groupChoiceBox.getItems().size() + 1)));
+        groupChoiceBox.getSelectionModel().selectLast();
     }
 
-    private void createTable() {
-        int x = 0, y = 0;
+    @FXML
+    private void onAddStudentButton() {
+        TextField firstNameField = new TextField(), lastNameField = new TextField();
+        firstNameField.setTooltip(new Tooltip("Has to start with a capital letter. (John)"));
+        lastNameField.setTooltip(new Tooltip("Has to start with a capital letter. (Smith)"));
 
-        for(; x < 31 + 2; ++x) {
-            var pane = new StackPane();
-            Rectangle rect;
-            Label label = new Label();
+        var dialog = new Dialog<Student>();
+        dialog.setTitle("Add a Student");
+        dialog.initModality(Modality.APPLICATION_MODAL);
 
-            if(x < 2) {
-                rect = BorderRect.NAME.clone();
-                label.setText(x == 0 ? "Student Name" : "Total Missed");
+        var content = new GridPane();
+        content.addRow(0, new Label("First Name"), firstNameField);
+        content.addRow(1, new Label("Last Name"), lastNameField);
+        content.setStyle("-fx-vgap: 10; -fx-hgap: 10");
+        dialog.getDialogPane().setContent(content);
+
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.CANCEL, ButtonType.OK);
+
+        Button okButton = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
+        okButton.setDisable(true);
+        okButton.addEventFilter(ActionEvent.ACTION, event -> {
+            String  firstName = firstNameField.getText().strip(),
+                    lastName = lastNameField.getText().strip();
+            boolean valid = true;
+
+            if(!firstName.matches(Regexes.NAME_EN.regex)) {
+                valid = false;
+                Platform.runLater(firstNameField::clear);
             }
-            else {
-                rect = BorderRect.NUMBER.clone();
-                label.setText(DAY_FORMAT.format(x - 1));
+            if(!lastName.matches(Regexes.NAME_EN.regex)) {
+                valid = false;
+                Platform.runLater(lastNameField::clear);
             }
 
-            pane.getChildren().addAll(rect, label);
-            table.add(pane, x, y);
-        }
-    }
-    
-    private void clearTable() {
-        table.getRowConstraints().remove(1, table.getRowCount());
-    }
-    
-    public void setGroup(Group group) {
-        if (!Groups.contains(group))
-            throw new IllegalArgumentException("This group does not belong to the list inside Groups class.");
-        
-        clearTable();
-        
-        int rowIndex = 1;
-        for(var student : group) {
-            table.addRow(rowIndex++,
-                    new StackPane(BorderRect.NAME, new Label(String.join(" ", student.getFirstName(), student.getLastName()))),
-                    new StackPane(BorderRect.NUMBER, new Label(String.valueOf(0)))
-            );
-        }
-        for(var row : table.getRowConstraints())
-            row.setMaxHeight(30);
-            
-        previousGroup = group;
+            if(!valid)
+                event.consume();
+        });
+        // Disable the button if some of the fields are empty
+        okButton.disableProperty().bind(firstNameField.textProperty().isEmpty().or(lastNameField.textProperty().isEmpty()));
+
+        dialog.setResultConverter(buttonType -> {
+           if(buttonType == ButtonType.OK)
+               return new Student(firstNameField.getText(), lastNameField.getText());
+           return null;
+        });
+
+        var student = dialog.showAndWait();
+        student.ifPresent(student1 -> {
+            groupChoiceBox.getValue().getStudents().add(student1);
+            table.refresh();
+        });
     }
 
-    public static RootController getInstance() {
-        return instance;
-    }
-    public GridPane getTable() {
-        return table;
+    @FXML
+    private void onEditGroupButton() {
+
     }
 
-    public ChoiceBox<Group> getGroupChoiceBox() {
-        return groupChoiceBox;
+    @FXML
+    private void onRemoveGroupButton() {
+        Alert warning = new Alert(Alert.AlertType.CONFIRMATION);
+        warning.initModality(Modality.APPLICATION_MODAL);
+        warning.setTitle("Warning");
+        warning.setHeaderText("Are you sure you want to remove this group?");
+
+        var result = warning.showAndWait();
+        result.ifPresent(buttonType -> {
+            if(buttonType == ButtonType.OK) {
+                groupChoiceBox.getItems().remove(groupChoiceBox.getValue());
+                groupChoiceBox.getSelectionModel().clearSelection();
+            }
+        });
     }
 }

@@ -3,27 +3,34 @@ package dev.dmitrij.kuzmiciov.app;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
-import dev.dmitrij.kuzmiciov.app.util.Language;
+
+/**
+ * Main class for this application.
+ * @see javafx.application.Application
+ * @author Dmitrij Kuzmiciov
+ * @version 1.0
+ */
 
 public class App extends Application {
-    public static final Language language = Language.EN;
-    
     private static App instance;
     private static Stage primaryStage;
-    
+
     @Override
     public void start(Stage primaryStage) {
         instance = this;
         App.primaryStage = primaryStage;
-
         try {
-            Parent parent = FXMLLoader.load(getClass().getResource("/fxml/root.fxml"));
+            Pane parent = FXMLLoader.load(getClass().getResource("/fxml/root.fxml"));
             primaryStage.setScene(new Scene(parent));
             primaryStage.setTitle("Student App");
+            Platform.runLater(()-> {
+                primaryStage.setMinHeight(720);
+                primaryStage.setMinWidth(1280);
+            });
             primaryStage.show();
         } catch(Exception e) {
             e.printStackTrace();
@@ -31,14 +38,24 @@ public class App extends Application {
         }
     }
 
+    /**
+     *
+     * @return a running instance of this class
+     */
     public static App getInstance() {
         return instance;
     }
 
+    /**
+     * @return a primary {@link Stage} of the running instance
+     */
     public static Stage getPrimaryStage() {
         return primaryStage;
     }
 
+    /**
+     * Sends a request to close this application
+     */
     public static void close() {
         if(primaryStage != null)
             primaryStage.fireEvent(new WindowEvent(primaryStage, WindowEvent.WINDOW_CLOSE_REQUEST));

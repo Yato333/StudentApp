@@ -1,50 +1,44 @@
 package dev.dmitrij.kuzmiciov.app.data;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
-/**
- * This class contains references to students, stored as a set.
- * This means that each instance of this class cannot have 2 references to a same student.
- * @implSpec all constructors must call {@link #Group()}
- */
-
-public class Group extends TreeSet<Student> {
-    String name;
-    
-    protected Group() {
-        super(Comparator.comparing((Student s) -> s.lastName).thenComparing(s -> s.firstName));
-    }
-    
-    private Group(Comparator<? super Student> comparator) {
-    }
-    
-    private Group(@NotNull Collection<? extends Student> c) {
-    
-    }
-    
-    private Group(SortedSet<Student> s) {
-    }
-    
-    Group(@NotNull String name, @NotNull Student... students) {
-        this();
-        this.name = name;
-        Collections.addAll(this, students);
-    }
-
-    Group(@NotNull String name, @NotNull Collection<Student> students) {
-        this();
-        this.name = name;
-        this.addAll(students);
-    }
-
+public class Group {
+    private String name;
     public String getName() {
         return name;
+    }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    private final ArrayList<Student> students = new ArrayList<>();
+    public ObservableList<Student> getStudents() {
+        return FXCollections.observableList(students);
+    }
+
+    public Group() {
+        this("");
+    }
+
+    public Group(@NotNull String name) {
+        setName(name);
+    }
+
+    public Group(@NotNull Collection<? extends Student> c) {
+        this("", c);
+    }
+
+    public Group(@NotNull String name, @NotNull Collection<? extends Student> c) {
+        this(name);
+        students.addAll(c);
     }
 
     @Override
     public String toString() {
-        return name;
+        return getName();
     }
 }

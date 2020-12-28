@@ -1,58 +1,67 @@
 package dev.dmitrij.kuzmiciov.app.data;
 
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
+import javafx.beans.property.*;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableMap;
 
 import java.time.LocalDate;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Student {
-    String firstName, lastName;
-    Group group = null;
-    protected HashMap<LocalDate, Mark> marks = new HashMap<>();
+    public static final String
+            FIRST_NAME_PROPERTY_NAME = "firstName",
+            LAST_NAME_PROPERTY_NAME = "lastName",
+            AVERAGE_PROPERTY_NAME = "average";
 
-    public Student(@NotNull String firstName, @NotNull String lastName) {
-        this.firstName = firstName;
-        this.lastName = lastName;
+    private final Map<LocalDate, Mark> markMap = new LinkedHashMap<>();
+    public ObservableMap<LocalDate, Mark> getMarkMap() {
+        return FXCollections.observableMap(markMap);
     }
-    
+
+    private final StringProperty firstName = new SimpleStringProperty(this, FIRST_NAME_PROPERTY_NAME);
     public String getFirstName() {
+        return firstName.get();
+    }
+    public StringProperty firstNameProperty() {
         return firstName;
     }
-    
+    public void setFirstName(String firstName) {
+        this.firstName.set(firstName);
+    }
+
+
+    private final StringProperty lastName = new SimpleStringProperty(this, LAST_NAME_PROPERTY_NAME);
     public String getLastName() {
+        return lastName.get();
+    }
+    public StringProperty lastNameProperty() {
         return lastName;
     }
-    
-    public void setGroup(@NotNull Group newGroup) {
-        if(group == null)
-            group = newGroup;
-        else {
-            group.remove(this);
-            newGroup.add(this);
-        }
+    public void setLastName(String lastName) {
+        this.lastName.set(lastName);
     }
-    
-    public void setMark(@NotNull LocalDate date, @NotNull Mark mark) {
-        marks.put(date, mark);
+
+
+    private final FloatProperty average = new SimpleFloatProperty(this, AVERAGE_PROPERTY_NAME);
+    public float getAverage() {
+        return average.get();
     }
-    
-    public void removeMark(@NotNull LocalDate date) {
-        marks.remove(date);
+    public FloatProperty averageProperty() {
+        return average;
     }
-    
-    /**
-     *
-     * @return a mark if it was set at that date; null, if it wasn't
-     */
-    public @Nullable Mark getMark(@NotNull LocalDate date) {
-        return marks.get(date);
+    public void setAverage(float average) {
+        this.average.set(average);
     }
-    
-    public boolean wasAbsent(@NotNull LocalDate date) {
-        var mark = marks.get(date);
-        if(mark == null)
-            return false;
-        return mark.isAbsent();
+
+
+    public Student() {
+        this("", "");
+    }
+
+    public Student(String firstName, String lastName) {
+        setFirstName(firstName);
+        setLastName(lastName);
+        setAverage(0);
     }
 }
