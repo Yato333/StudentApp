@@ -8,6 +8,8 @@ import dev.dmitrij.kuzmiciov.app.util.Regexes;
 import dev.dmitrij.kuzmiciov.app.util.file.Loader;
 import dev.dmitrij.kuzmiciov.app.util.file.Saver;
 import javafx.application.Platform;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -21,9 +23,14 @@ import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import javafx.util.StringConverter;
 import javafx.util.converter.LocalDateStringConverter;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.LocalDate;
+import java.time.Month;
+import java.time.Year;
+import java.time.YearMonth;
 import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 /**
  * This is a Controller for the root of the {@link javafx.scene.Scene} of this {@link javafx.application.Application}
@@ -56,7 +63,8 @@ public final class RootController extends Controller {
 
     // Custom nodes added to the root after the FXML loading
     private TextField groupName;
-    private DatePicker datePicker;
+    //private DatePicker datePicker;
+    private ComboBox<YearMonth> monthPicker;
     private RootTable table;
 
     /**
@@ -121,8 +129,14 @@ public final class RootController extends Controller {
         tableHeader.setLeft(editButton);
 
 
-        datePicker = new DatePicker(LocalDate.now());
-        tableHeader.setRight(datePicker);
+        monthPicker = new ComboBox<>();
+        monthPicker.setItems(App.getCurrentYear().getTotalMonthsUnmodifiable());
+        monthPicker.getSelectionModel().selectFirst();
+        monthPicker.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
+        tableHeader.setRight(monthPicker);
+        App.currentYearProperty().addListener((observable, oldValue, newValue) -> {
+            monthPicker.setItems(App.getCurrentYear().getTotalMonthsUnmodifiable());
+        });
 
         return tableHeader;
     }
@@ -140,7 +154,7 @@ public final class RootController extends Controller {
         var tableHeader = createTableHeader();
 
         // Creating the table
-        table = new RootTable(datePicker);
+        table = new RootTable(monthPicker);
         table.setEditable(true);
 
         // Adding the table are to the parent node
@@ -172,8 +186,8 @@ public final class RootController extends Controller {
         removeGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
     }
 
-    public RootTable getTable() {
-        return table;
+    public @Nullable Group getCurrentGroup() {
+        return groupChoiceBox.getValue();
     }
 
     @FXML

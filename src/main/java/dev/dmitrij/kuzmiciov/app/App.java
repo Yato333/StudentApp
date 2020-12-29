@@ -1,7 +1,10 @@
 package dev.dmitrij.kuzmiciov.app;
 
+import dev.dmitrij.kuzmiciov.app.util.StudyYear;
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.Pane;
@@ -18,6 +21,17 @@ import javafx.stage.WindowEvent;
 public class App extends Application {
     private static App instance;
     private static Stage primaryStage;
+
+    private static final ObjectProperty<StudyYear> currentYear = new SimpleObjectProperty<>(new StudyYear(2019));
+    public static ObjectProperty<StudyYear> currentYearProperty() {
+        return currentYear;
+    }
+    public static StudyYear getCurrentYear() {
+        return currentYear.get();
+    }
+    public static void setCurrentYear(StudyYear currentYear) {
+        App.currentYear.set(currentYear);
+    }
 
     @Override
     public void start(Stage primaryStage) {

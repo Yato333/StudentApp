@@ -1,9 +1,11 @@
 package dev.dmitrij.kuzmiciov.app;
 
+import dev.dmitrij.kuzmiciov.app.controller.RootController;
 import dev.dmitrij.kuzmiciov.app.data.Mark;
 import dev.dmitrij.kuzmiciov.app.data.Student;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -11,7 +13,9 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.time.YearMonth;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class RootTable extends TableView<Student> {
     private static RootTable instance;
@@ -20,8 +24,9 @@ public class RootTable extends TableView<Student> {
     public @Unmodifiable ObservableList<TableColumn<Student, Mark>> getMarkColumns() {
         return FXCollections.unmodifiableObservableList(FXCollections.observableList(markColumns));
     }
+    private final LinkedList<TableColumn<Student, Mark>> shownMarkColumns = new LinkedList<>();
 
-    public RootTable(@NotNull DatePicker datePicker) {
+    public RootTable(@NotNull ComboBox<YearMonth> monthPicker) {
         instance = this;
 
         var firstNameColumn = new TableColumn<Student, String>("First Name");
@@ -38,7 +43,7 @@ public class RootTable extends TableView<Student> {
             markColumns.add(new TableColumn<>(String.format("%02d", i + 1)));
         }
 
-        datePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+        monthPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
             if(!newValue.getMonth().equals(oldValue.getMonth())) {
                 for (int i = 29; i <= 31; ++i) {
                     if (newValue.getMonth().length(newValue.isLeapYear()) < i) {
@@ -47,6 +52,13 @@ public class RootTable extends TableView<Student> {
                         break;
                     }
                     markColumns.get(i - 1).setVisible(true);
+                }
+                var group = RootController.getInstance().getCurrentGroup();
+                assert (group != null);
+
+                for(var student : group.getStudents()) {
+                    assert(student != null);
+
                 }
             }
         });
