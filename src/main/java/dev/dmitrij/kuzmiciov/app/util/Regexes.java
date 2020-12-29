@@ -3,7 +3,7 @@ package dev.dmitrij.kuzmiciov.app.util;
 import org.intellij.lang.annotations.Language;
 
 public enum Regexes {
-    GROUP_EN("^[\\w -]+$"),
+    GROUP_EN("^.+$"),
     NAME_EN("^[A-Z][A-Za-z]+$");
 
     @Language("regexp")

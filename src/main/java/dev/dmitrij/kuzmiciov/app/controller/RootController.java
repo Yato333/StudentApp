@@ -9,7 +9,11 @@ import dev.dmitrij.kuzmiciov.app.util.Regexes;
 import dev.dmitrij.kuzmiciov.app.util.file.Loader;
 import dev.dmitrij.kuzmiciov.app.util.file.Saver;
 import javafx.application.Platform;
+import javafx.beans.binding.Binding;
+import javafx.beans.binding.Bindings;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
+import javafx.collections.transformation.SortedList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -26,6 +30,8 @@ import javafx.stage.Modality;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.YearMonth;
+import java.util.Comparator;
+import java.util.List;
 
 /**
  * This is a Controller for the root of the {@link javafx.scene.Scene} of this {@link javafx.application.Application}
@@ -81,6 +87,7 @@ public final class RootController extends Controller {
         // Handling group name label
         groupName = new TextField();
         groupName.setAlignment(Pos.CENTER);
+        groupName.setMaxWidth(500);
         var groupNameDefaultStyle = groupName.getStyle();
         var groupNameStyle = "-fx-background-color: transparent; -fx-background-insets: 0px";
         groupName.setStyle(groupNameStyle);
@@ -97,17 +104,27 @@ public final class RootController extends Controller {
                     var name = groupName.getText().strip();
                     groupChoiceBox.getValue().setName(name);
 
-                    var selModel = groupChoiceBox.getSelectionModel();
-                    int prevIndex = selModel.getSelectedIndex();
-                    selModel.clearSelection();
-                    selModel.clearAndSelect(prevIndex);
-
                     groupName.setStyle(groupNameStyle);
                     groupName.setEditable(false);
+
+                    var selModel = groupChoiceBox.getSelectionModel();
+                    var selectedItem = selModel.getSelectedItem();
+                    selModel.clearSelection();
+                    groupChoiceBox.getItems().sort(Comparator.comparing(Group::getName));
+                    selModel.select(selectedItem);
                 } else {
-                    groupName.setText("");
+                    groupName.clear();
                     groupName.requestFocus();
                 }
+            }
+        });
+        // Constricting input size
+        groupName.textProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue.length() > Group.MAX_NAME_LENGTH) {
+                if(newValue.length() == Group.MAX_NAME_LENGTH + 1)
+                    groupName.deletePreviousChar();
+                else
+                    groupName.setText(groupName.getText().substring(0, 30));
             }
         });
 
@@ -189,14 +206,14 @@ public final class RootController extends Controller {
                 datePicker.setValue(monthPicker.getValue().atDay(1));
             }
         });
-        /*
-        monthPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue != null)
-                datePicker.setValue(newValue.atDay(1));
-        });*/
 
         // Handle button availability for the user
-        setMarksButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
+        setMarksButton.disableProperty().bind(
+                groupChoiceBox.valueProperty().isNull().or (
+                datePicker.valueProperty().isNull()).or (
+                monthPicker.valueProperty().isNull())
+        );
+
         addStudentButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         editGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         removeGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
@@ -263,6 +280,7 @@ public final class RootController extends Controller {
            return null;
         });
 
+        dialog.setOnShowing(e -> Platform.runLater(firstNameField::requestFocus));
         var student = dialog.showAndWait();
         student.ifPresent(student1 -> {
             groupChoiceBox.getValue().getStudents().add(student1);
@@ -286,7 +304,12 @@ public final class RootController extends Controller {
         result.ifPresent(buttonType -> {
             if(buttonType == ButtonType.OK) {
                 groupChoiceBox.getItems().remove(groupChoiceBox.getValue());
-                groupChoiceBox.getSelectionModel().clearSelection();
+                if(groupChoiceBox.getItems().isEmpty())
+                    groupChoiceBox.getSelectionModel().clearSelection();
+                else if(groupChoiceBox.getSelectionModel().getSelectedIndex() > 0)
+                    groupChoiceBox.getSelectionModel().selectPrevious();
+                else
+                    groupChoiceBox.getSelectionModel().selectNext();
             }
         });
     }

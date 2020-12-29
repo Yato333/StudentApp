@@ -7,6 +7,8 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class Group {
+    public final static int MAX_NAME_LENGTH = 30;
+
     private String name;
     public String getName() {
         return name;

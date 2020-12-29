@@ -39,8 +39,8 @@ public class RootTable extends TableView<Student> {
 
         for(int i = 0; i < 31; ++i) {
             var column = new TableColumn<Student, Mark>(String.format("%02d", i + 1));
-            column.setMaxWidth(16);
-            markColumns.add(new TableColumn<>(String.format("%02d", i + 1)));
+            column.setMaxWidth(50);
+            markColumns.add(column);
         }
 
         monthPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
@@ -58,7 +58,7 @@ public class RootTable extends TableView<Student> {
 
                 for(var student : group.getStudents()) {
                     assert(student != null);
-
+                    //TODO: add student marks
                 }
             }
         });
@@ -69,9 +69,16 @@ public class RootTable extends TableView<Student> {
         getColumns().addAll(markColumns);
 
         firstNameColumn.setMinWidth(100);
+        firstNameColumn.setMaxWidth(200);
         lastNameColumn.setMinWidth(100);
+        lastNameColumn.setMaxWidth(200);
         averageColumn.setMinWidth(50);
+        averageColumn.setMaxWidth(100);
+
         setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY);
+
+        getColumns().forEach(column -> column.setReorderable(false));
+
         setStyle("-fx-pref-width: 300; -fx-pref-height: 100");
     }
 
