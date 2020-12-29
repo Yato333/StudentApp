@@ -28,6 +28,9 @@
                       <ComboBox fx:id="groupChoiceBox" />
                       <Button mnemonicParsing="false" onAction="#onAddGroupButton" text="Add Group" />
                   <Separator />
+                  <DatePicker fx:id="datePicker" disable="true" prefHeight="25.0" prefWidth="133.0" />
+                  <Button fx:id="setMarksButton" disable="true" mnemonicParsing="false" onAction="#onSetMarksButton" text="Set Marks" textAlignment="CENTER" wrapText="true" />
+                  <Separator />
                       <Button fx:id="addStudentButton" disable="true" mnemonicParsing="false" onAction="#onAddStudentButton" text="Add Student" />
                   <Button fx:id="editGroupButton" disable="true" mnemonicParsing="false" onAction="#onEditGroupButton" text="Edit Group" />
                   <Button fx:id="removeGroupButton" disable="true" mnemonicParsing="false" onAction="#onRemoveGroupButton" text="Remove Group" textFill="RED" />

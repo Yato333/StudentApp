@@ -4,12 +4,11 @@ import dev.dmitrij.kuzmiciov.app.App;
 import dev.dmitrij.kuzmiciov.app.RootTable;
 import dev.dmitrij.kuzmiciov.app.data.Group;
 import dev.dmitrij.kuzmiciov.app.data.Student;
+import dev.dmitrij.kuzmiciov.app.util.LTDateConverter;
 import dev.dmitrij.kuzmiciov.app.util.Regexes;
 import dev.dmitrij.kuzmiciov.app.util.file.Loader;
 import dev.dmitrij.kuzmiciov.app.util.file.Saver;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
@@ -19,18 +18,14 @@ import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
-import javafx.util.StringConverter;
-import javafx.util.converter.LocalDateStringConverter;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.LocalDate;
-import java.time.Month;
-import java.time.Year;
 import java.time.YearMonth;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 /**
  * This is a Controller for the root of the {@link javafx.scene.Scene} of this {@link javafx.application.Application}
@@ -61,9 +56,14 @@ public final class RootController extends Controller {
         editGroupButton,
         removeGroupButton;
 
-    // Custom nodes added to the root after the FXML loading
+    // Controls for entering marks for a certain day
+    @FXML
+    private DatePicker datePicker;
+    @FXML
+    private Button setMarksButton;
+
+    // Table Area nodes
     private TextField groupName;
-    //private DatePicker datePicker;
     private ComboBox<YearMonth> monthPicker;
     private RootTable table;
 
@@ -180,7 +180,23 @@ public final class RootController extends Controller {
             }
         });
 
+        // Configuring the date picker
+        datePicker.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
+        datePicker.setConverter(new LTDateConverter());
+
+        Platform.runLater(() -> {
+            if(monthPicker.getValue() != null) {
+                datePicker.setValue(monthPicker.getValue().atDay(1));
+            }
+        });
+        /*
+        monthPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue != null)
+                datePicker.setValue(newValue.atDay(1));
+        });*/
+
         // Handle button availability for the user
+        setMarksButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         addStudentButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         editGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         removeGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
@@ -194,6 +210,11 @@ public final class RootController extends Controller {
     private void onAddGroupButton() {
         groupChoiceBox.getItems().add(new Group(String.valueOf(groupChoiceBox.getItems().size() + 1)));
         groupChoiceBox.getSelectionModel().selectLast();
+    }
+
+    @FXML
+    private void onSetMarksButton() {
+
     }
 
     @FXML

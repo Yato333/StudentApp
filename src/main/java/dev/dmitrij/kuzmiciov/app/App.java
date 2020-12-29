@@ -41,10 +41,8 @@ public class App extends Application {
             Pane parent = FXMLLoader.load(getClass().getResource("/fxml/root.fxml"));
             primaryStage.setScene(new Scene(parent));
             primaryStage.setTitle("Student App");
-            Platform.runLater(()-> {
-                primaryStage.setMinHeight(720);
-                primaryStage.setMinWidth(1280);
-            });
+            primaryStage.setMinHeight(720);
+            primaryStage.setMinWidth(1280);
             primaryStage.show();
         } catch(Exception e) {
             e.printStackTrace();
