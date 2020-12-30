@@ -1,4 +1,4 @@
-package dev.dmitrij.kuzmiciov.app.util;
+package dev.dmitrij.kuzmiciov.app.util.factory;
 
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;

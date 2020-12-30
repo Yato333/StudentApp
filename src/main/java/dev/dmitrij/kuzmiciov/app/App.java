@@ -11,6 +11,8 @@ import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import javafx.stage.WindowEvent;
 
+import java.io.IOException;
+
 /**
  * Main class for this application.
  * @see javafx.application.Application
@@ -21,6 +23,17 @@ import javafx.stage.WindowEvent;
 public class App extends Application {
     private static App instance;
     private static Stage primaryStage;
+
+    private static Pane root;
+    private static Stage setMarksStage;
+
+    private static void load() throws IOException {
+        root = FXMLLoader.load(App.class.getResource("/fxml/root.fxml"));
+        Pane setMarksRoot = FXMLLoader.load(App.class.getResource("/fxml/setMarksWindow.fxml"));
+        setMarksStage = new Stage();
+        setMarksStage.setScene(new Scene(setMarksRoot));
+        // TODO: implement multithreading if it is too slow
+    }
 
     private static final ObjectProperty<StudyYear> currentYear = new SimpleObjectProperty<>(new StudyYear(2019));
     public static ObjectProperty<StudyYear> currentYearProperty() {
@@ -37,17 +50,19 @@ public class App extends Application {
     public void start(Stage primaryStage) {
         instance = this;
         App.primaryStage = primaryStage;
+
         try {
-            Pane parent = FXMLLoader.load(getClass().getResource("/fxml/root.fxml"));
-            primaryStage.setScene(new Scene(parent));
+            load();
+            primaryStage.setScene(new Scene(root));
             primaryStage.setTitle("Student App");
             primaryStage.setMinHeight(720);
             primaryStage.setMinWidth(1280);
-            primaryStage.show();
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             Platform.exit();
         }
+
+        primaryStage.show();
     }
 
     /**
@@ -69,8 +84,7 @@ public class App extends Application {
      * Sends a request to close this application
      */
     public static void close() {
-        if(primaryStage != null)
-            primaryStage.fireEvent(new WindowEvent(primaryStage, WindowEvent.WINDOW_CLOSE_REQUEST));
+        primaryStage.fireEvent(new WindowEvent(primaryStage, WindowEvent.WINDOW_CLOSE_REQUEST));
     }
 
     public static void main(String[] args) {

@@ -11,19 +11,15 @@ public class StudyYear extends TimePeriod {
         return studyYearStart;
     }
     public static void setStudyYearStart(@NotNull MonthDay studyYearStart) {
-        if(studyYearStart.isAfter(studyYearEnd))
-            throw new IllegalArgumentException("The start of the study year cannot be after the end of the year.");
         StudyYear.studyYearStart = studyYearStart;
     }
 
-    private static MonthDay studyYearEnd = MonthDay.of(Month.JULY, 1);
-    public static MonthDay getStudyYearEnd() {
-        return studyYearEnd;
+    private static int studyYearLengthInMonths = 9;
+    public static int getStudyYearLengthInMonths() {
+        return studyYearLengthInMonths;
     }
-    public static void setStudyYearEnd(@NotNull MonthDay studyYearEnd) {
-        if(studyYearEnd.isBefore(studyYearStart))
-            throw new IllegalArgumentException("The end of the study year cannot be before the start of the year.");
-        StudyYear.studyYearEnd = studyYearEnd;
+    public static void setStudyYearLengthInMonths(int studyYearLengthInMonths) {
+        StudyYear.studyYearLengthInMonths = studyYearLengthInMonths;
     }
 
     public StudyYear(@NotNull Year startYear) {
@@ -32,7 +28,7 @@ public class StudyYear extends TimePeriod {
 
     public StudyYear(int startYear) {
         super(LocalDate.of(startYear, studyYearStart.getMonth(), studyYearStart.getDayOfMonth()),
-                LocalDate.of(startYear + 1, studyYearEnd.getMonth(), studyYearEnd.getDayOfMonth())
+                LocalDate.of(startYear + 12 / studyYearLengthInMonths, studyYearStart.getMonth().plus(studyYearLengthInMonths), studyYearStart.getDayOfMonth())
         );
     }
 }

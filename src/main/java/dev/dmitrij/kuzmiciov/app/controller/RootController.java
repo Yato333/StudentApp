@@ -4,20 +4,16 @@ import dev.dmitrij.kuzmiciov.app.App;
 import dev.dmitrij.kuzmiciov.app.RootTable;
 import dev.dmitrij.kuzmiciov.app.data.Group;
 import dev.dmitrij.kuzmiciov.app.data.Student;
+import dev.dmitrij.kuzmiciov.app.data.StudyYear;
 import dev.dmitrij.kuzmiciov.app.util.LTDateConverter;
-import dev.dmitrij.kuzmiciov.app.util.RedWeekendDaysDayCellFactory;
+import dev.dmitrij.kuzmiciov.app.util.factory.RedWeekendDaysDayCellFactory;
 import dev.dmitrij.kuzmiciov.app.util.Regexes;
-import dev.dmitrij.kuzmiciov.app.util.event.EventHandlers;
+import dev.dmitrij.kuzmiciov.app.util.EventHandlers;
 import dev.dmitrij.kuzmiciov.app.util.file.Loader;
 import dev.dmitrij.kuzmiciov.app.util.file.Saver;
 import javafx.application.Platform;
-import javafx.beans.binding.Binding;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.ObjectBinding;
-import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
-import javafx.collections.ListChangeListener;
-import javafx.collections.transformation.SortedList;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
@@ -25,29 +21,13 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.input.KeyCode;
-import javafx.scene.layout.BorderPane;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.VBox;
+import javafx.scene.layout.*;
 import javafx.stage.Modality;
-import javafx.util.Callback;
-import javafx.util.converter.DateStringConverter;
-import javafx.util.converter.FormatStringConverter;
 import org.jetbrains.annotations.Nullable;
 
-import java.rmi.UnexpectedException;
-import java.text.SimpleDateFormat;
-import java.time.DayOfWeek;
-import java.time.LocalDate;
+import java.time.Year;
 import java.time.YearMonth;
 import java.util.Comparator;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
-import java.util.function.IntFunction;
 
 /**
  * This is a Controller for the root of the {@link javafx.scene.Scene} of this {@link javafx.application.Application}
@@ -162,15 +142,44 @@ public final class RootController extends Controller {
         monthPicker = new ComboBox<>();
         monthPicker.setItems(App.getCurrentYear().getTotalMonthsUnmodifiable());
         monthPicker.getSelectionModel().selectFirst();
-        monthPicker.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
         monthPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue != null && !datePicker.getValue().getMonth().equals(newValue.getMonth()))
+            if(newValue != null && !YearMonth.of(datePicker.getValue().getYear(), datePicker.getValue().getMonth()).equals(newValue))
                 datePicker.setValue(newValue.atDay(1));
         });
-        tableHeader.setRight(monthPicker);
         App.currentYearProperty().addListener((observable, oldValue, newValue) -> {
             monthPicker.setItems(App.getCurrentYear().getTotalMonthsUnmodifiable());
+            monthPicker.getSelectionModel().selectFirst();
         });
+
+        var setStudyYearButton = new Button("Set Study Year");
+        setStudyYearButton.setOnAction(e -> {
+            ObservableList<Year> yearList = FXCollections.observableArrayList();
+            for(Year year = Year.now().minusYears(5); !year.isAfter(Year.now().plusYears(5)); year = year.plusYears(1))
+                yearList.add(year);
+
+            var yearSelector = new ComboBox<>(yearList);
+            yearSelector.getSelectionModel().select(Year.now());
+            yearSelector.setVisibleRowCount(10);
+
+            Dialog<Year> dialog = new Dialog<>();
+            dialog.setHeaderText("Select Study Year");
+            dialog.initModality(Modality.APPLICATION_MODAL);
+            dialog.getDialogPane().setContent(new StackPane(yearSelector));
+            dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+            dialog.setResultConverter(buttonType -> {
+                if(buttonType == ButtonType.OK)
+                    return yearSelector.getValue();
+                return null;
+            });
+
+            var resultYear = dialog.showAndWait();
+            resultYear.ifPresent(year -> App.setCurrentYear(new StudyYear(year.getValue())));
+        });
+
+        var monthPickerWrapper = new VBox(10, setStudyYearButton, monthPicker);
+        monthPickerWrapper.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
+
+        tableHeader.setRight(monthPickerWrapper);
 
         return tableHeader;
     }
@@ -313,7 +322,7 @@ public final class RootController extends Controller {
 
     @FXML
     private void onEditGroupButton() {
-
+        // TODO: make edit group window
     }
 
     @FXML

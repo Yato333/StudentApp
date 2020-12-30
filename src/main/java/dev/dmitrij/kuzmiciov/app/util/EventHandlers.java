@@ -1,4 +1,4 @@
-package dev.dmitrij.kuzmiciov.app.util.event;
+package dev.dmitrij.kuzmiciov.app.util;
 
 import javafx.event.EventHandler;
 import javafx.scene.Node;

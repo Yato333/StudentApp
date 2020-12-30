@@ -16,17 +16,18 @@ import org.jetbrains.annotations.Unmodifiable;
 
 import java.time.YearMonth;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class RootTable extends TableView<Student> {
     private static RootTable instance;
+    public static RootTable getInstance() {
+        return instance;
+    }
 
     private final ArrayList<TableColumn<Student, Mark>> markColumns = new ArrayList<>();
     public @Unmodifiable ObservableList<TableColumn<Student, Mark>> getMarkColumns() {
         return FXCollections.unmodifiableObservableList(FXCollections.observableList(markColumns));
     }
-    private final LinkedList<TableColumn<Student, Mark>> shownMarkColumns = new LinkedList<>();
 
     public RootTable(@NotNull ComboBox<YearMonth> monthPicker) {
         instance = this;
@@ -45,7 +46,7 @@ public class RootTable extends TableView<Student> {
         }
 
         monthPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if(!newValue.getMonth().equals(oldValue.getMonth())) {
+            if(newValue != null && oldValue != null && !newValue.getMonth().equals(oldValue.getMonth())) {
                 for (int i = 29; i <= 31; ++i) {
                     if (newValue.getMonth().length(newValue.isLeapYear()) < i) {
                         for (int j = i; j <= 31; ++j)
@@ -105,9 +106,5 @@ public class RootTable extends TableView<Student> {
         });
 
         setStyle("-fx-pref-width: 300; -fx-pref-height: 100; -fx-column-halignment: center");
-    }
-
-    public static RootTable getInstance() {
-        return instance;
     }
 }
