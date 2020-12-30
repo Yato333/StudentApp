@@ -5,12 +5,16 @@ import dev.dmitrij.kuzmiciov.app.RootTable;
 import dev.dmitrij.kuzmiciov.app.data.Group;
 import dev.dmitrij.kuzmiciov.app.data.Student;
 import dev.dmitrij.kuzmiciov.app.util.LTDateConverter;
+import dev.dmitrij.kuzmiciov.app.util.RedWeekendDaysDayCellFactory;
 import dev.dmitrij.kuzmiciov.app.util.Regexes;
+import dev.dmitrij.kuzmiciov.app.util.event.EventHandlers;
 import dev.dmitrij.kuzmiciov.app.util.file.Loader;
 import dev.dmitrij.kuzmiciov.app.util.file.Saver;
 import javafx.application.Platform;
 import javafx.beans.binding.Binding;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.ObjectBinding;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ListChangeListener;
 import javafx.collections.transformation.SortedList;
@@ -27,11 +31,23 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
+import javafx.util.Callback;
+import javafx.util.converter.DateStringConverter;
+import javafx.util.converter.FormatStringConverter;
 import org.jetbrains.annotations.Nullable;
 
+import java.rmi.UnexpectedException;
+import java.text.SimpleDateFormat;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.function.IntFunction;
 
 /**
  * This is a Controller for the root of the {@link javafx.scene.Scene} of this {@link javafx.application.Application}
@@ -83,7 +99,6 @@ public final class RootController extends Controller {
     private BorderPane createTableHeader() {
         var tableHeader = new BorderPane();
 
-
         // Handling group name label
         groupName = new TextField();
         groupName.setAlignment(Pos.CENTER);
@@ -92,11 +107,10 @@ public final class RootController extends Controller {
         var groupNameStyle = "-fx-background-color: transparent; -fx-background-insets: 0px";
         groupName.setStyle(groupNameStyle);
         groupName.setEditable(false);
+
         // Making it commit change on ENTER
-        groupName.setOnKeyPressed(keyEvent -> {
-            if(keyEvent.getCode() == KeyCode.ENTER)
-                groupName.getParent().requestFocus();
-        });
+        groupName.setOnKeyPressed(EventHandlers.commitOnEnterHandler(groupName));
+
         // Handling group name editing
         groupName.focusedProperty().addListener((obsVal, wasFocused, nowFocused) -> {
             if(!nowFocused) {
@@ -118,6 +132,7 @@ public final class RootController extends Controller {
                 }
             }
         });
+
         // Constricting input size
         groupName.textProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue.length() > Group.MAX_NAME_LENGTH) {
@@ -129,7 +144,6 @@ public final class RootController extends Controller {
         });
 
         tableHeader.setCenter(groupName);
-
 
         // Creating the 'edit group name' button
         var editImage = new Image("/img/edit_icon.png", 16, 16, true, true);
@@ -145,11 +159,14 @@ public final class RootController extends Controller {
         editButton.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
         tableHeader.setLeft(editButton);
 
-
         monthPicker = new ComboBox<>();
         monthPicker.setItems(App.getCurrentYear().getTotalMonthsUnmodifiable());
         monthPicker.getSelectionModel().selectFirst();
         monthPicker.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
+        monthPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue != null && !datePicker.getValue().getMonth().equals(newValue.getMonth()))
+                datePicker.setValue(newValue.atDay(1));
+        });
         tableHeader.setRight(monthPicker);
         App.currentYearProperty().addListener((observable, oldValue, newValue) -> {
             monthPicker.setItems(App.getCurrentYear().getTotalMonthsUnmodifiable());
@@ -174,7 +191,7 @@ public final class RootController extends Controller {
         table = new RootTable(monthPicker);
         table.setEditable(true);
 
-        // Adding the table are to the parent node
+        // Adding the table area to the parent node
         var tableWrapper = new VBox(10, tableHeader, table);
         root.setCenter(tableWrapper);
         BorderPane.setMargin(tableWrapper, new Insets(20));
@@ -186,24 +203,30 @@ public final class RootController extends Controller {
         // Configuring groupChoiceBox
         groupChoiceBox.setPromptText("Select Group");
         groupChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue != oldValue) {
-                if(newValue == null) {
-                    groupName.clear();
-                    table.setItems(FXCollections.emptyObservableList());
-                } else {
-                    groupName.setText(newValue.getName());
-                    table.setItems(newValue.getStudents());
-                }
+            if(newValue == null) {
+                groupName.clear();
+                table.setItems(FXCollections.emptyObservableList());
+            } else {
+                groupName.setText(newValue.getName());
+                table.setItems(newValue.getStudents());
             }
         });
 
         // Configuring the date picker
         datePicker.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         datePicker.setConverter(new LTDateConverter());
+        datePicker.setValue(monthPicker.getValue().atDay(1));
+        datePicker.setOnKeyPressed(EventHandlers.commitOnEnterHandler(datePicker));
+        datePicker.setDayCellFactory(new RedWeekendDaysDayCellFactory());
+        datePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue != null && !monthPicker.getValue().equals(YearMonth.of(newValue.getYear(), newValue.getMonth()))) {
+                var matchingMonths = monthPicker.getItems().filtered(yearMonth -> yearMonth.getMonth().equals(newValue.getMonth()));
+                assert (matchingMonths.size() <= 1); // if the condition is false then something went wrong
 
-        Platform.runLater(() -> {
-            if(monthPicker.getValue() != null) {
-                datePicker.setValue(monthPicker.getValue().atDay(1));
+                if(matchingMonths.size() == 0)
+                    datePicker.setValue(monthPicker.getValue().atDay(1));
+                else
+                    monthPicker.setValue(YearMonth.of(newValue.getYear(), newValue.getMonth()));
             }
         });
 
