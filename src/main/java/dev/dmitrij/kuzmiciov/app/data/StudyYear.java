@@ -1,10 +1,9 @@
-package dev.dmitrij.kuzmiciov.app.util;
+package dev.dmitrij.kuzmiciov.app.data;
 
+import dev.dmitrij.kuzmiciov.app.util.TimePeriod;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class StudyYear extends TimePeriod {
     private static MonthDay studyYearStart = MonthDay.of(Month.SEPTEMBER, 1);

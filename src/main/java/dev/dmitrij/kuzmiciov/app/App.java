@@ -1,6 +1,6 @@
 package dev.dmitrij.kuzmiciov.app;
 
-import dev.dmitrij.kuzmiciov.app.util.StudyYear;
+import dev.dmitrij.kuzmiciov.app.data.StudyYear;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;

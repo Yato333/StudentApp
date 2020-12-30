@@ -3,10 +3,11 @@ package dev.dmitrij.kuzmiciov.app;
 import dev.dmitrij.kuzmiciov.app.controller.RootController;
 import dev.dmitrij.kuzmiciov.app.data.Mark;
 import dev.dmitrij.kuzmiciov.app.data.Student;
+import dev.dmitrij.kuzmiciov.app.util.AppMath;
+import javafx.beans.binding.ObjectBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.DatePicker;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
@@ -16,6 +17,7 @@ import org.jetbrains.annotations.Unmodifiable;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class RootTable extends TableView<Student> {
     private static RootTable instance;
@@ -31,11 +33,10 @@ public class RootTable extends TableView<Student> {
 
         var firstNameColumn = new TableColumn<Student, String>("First Name");
         var lastNameColumn = new TableColumn<Student, String>("Last Name");
-        var averageColumn = new TableColumn<Student, Float>("Average");
+        var averageColumn = new TableColumn<Student, String>("Average");
 
         firstNameColumn.setCellValueFactory(new PropertyValueFactory<>(Student.FIRST_NAME_PROPERTY_NAME));
         lastNameColumn.setCellValueFactory(new PropertyValueFactory<>(Student.LAST_NAME_PROPERTY_NAME));
-        averageColumn.setCellValueFactory(new PropertyValueFactory<>(Student.AVERAGE_PROPERTY_NAME));
 
         for(int i = 0; i < 31; ++i) {
             var column = new TableColumn<Student, Mark>(String.format("%02d", i + 1));
@@ -63,6 +64,27 @@ public class RootTable extends TableView<Student> {
             }
         });
 
+        averageColumn.setCellValueFactory(cellDataFeatures -> new ObjectBinding<>() {
+            @Override
+            protected String computeValue() {
+                AtomicInteger
+                    i = new AtomicInteger(),
+                    sum = new AtomicInteger();
+                markColumns.forEach(markColumn -> {
+                    var cellValueForStudent = markColumn.getCellObservableValue(cellDataFeatures.getValue());
+                    if(cellValueForStudent != null && cellValueForStudent.getValue() != null) {
+                        var mark = cellValueForStudent.getValue().getMark();
+                        if(mark != null) {
+                            sum.addAndGet(mark);
+                            i.incrementAndGet();
+                        }
+                    }
+                });
+                float average = (float)(sum.get()) / (float)(i.get());
+                return i.get() == 0 ? "-" : String.valueOf(AppMath.round(average, 2));
+            }
+        });
+
         getColumns().add(firstNameColumn);
         getColumns().add(lastNameColumn);
         getColumns().add(averageColumn);
@@ -77,9 +99,12 @@ public class RootTable extends TableView<Student> {
 
         setColumnResizePolicy(CONSTRAINED_RESIZE_POLICY);
 
-        getColumns().forEach(column -> column.setReorderable(false));
+        getColumns().forEach(column -> {
+            column.setReorderable(false);
+            column.setStyle("-fx-alignment: center");
+        });
 
-        setStyle("-fx-pref-width: 300; -fx-pref-height: 100");
+        setStyle("-fx-pref-width: 300; -fx-pref-height: 100; -fx-column-halignment: center");
     }
 
     public static RootTable getInstance() {

@@ -17,6 +17,7 @@
                         <MenuItem fx:id="closeButton" mnemonicParsing="false" text="Close" />
                     </items>
                 </Menu>
+            <Menu mnemonicParsing="false" text="Edit" />
             </menus>
         </MenuBar>
     </top>
