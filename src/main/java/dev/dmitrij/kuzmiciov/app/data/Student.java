@@ -1,12 +1,13 @@
 package dev.dmitrij.kuzmiciov.app.data;
 
-import javafx.beans.property.*;
+import javafx.beans.property.FloatProperty;
+import javafx.beans.property.SimpleFloatProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableMap;
 
 import java.time.LocalDate;
-import java.util.LinkedHashMap;
-import java.util.Map;
 
 public class Student {
     public static final String
@@ -14,10 +15,7 @@ public class Student {
             LAST_NAME_PROPERTY_NAME = "lastName",
             AVERAGE_PROPERTY_NAME = "average";
 
-    private final Map<LocalDate, Mark> markMap = new LinkedHashMap<>();
-    public ObservableMap<LocalDate, Mark> getMarkMap() {
-        return FXCollections.observableMap(markMap);
-    }
+    public final ObservableMap<LocalDate, Mark> MARKS = FXCollections.observableHashMap();
 
     private final StringProperty firstName = new SimpleStringProperty(this, FIRST_NAME_PROPERTY_NAME);
     public String getFirstName() {
@@ -30,7 +28,6 @@ public class Student {
         this.firstName.set(firstName);
     }
 
-
     private final StringProperty lastName = new SimpleStringProperty(this, LAST_NAME_PROPERTY_NAME);
     public String getLastName() {
         return lastName.get();
@@ -41,7 +38,6 @@ public class Student {
     public void setLastName(String lastName) {
         this.lastName.set(lastName);
     }
-
 
     private final FloatProperty average = new SimpleFloatProperty(this, AVERAGE_PROPERTY_NAME);
     public float getAverage() {

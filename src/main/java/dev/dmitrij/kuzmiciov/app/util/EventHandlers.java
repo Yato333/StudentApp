@@ -6,7 +6,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import org.jetbrains.annotations.NotNull;
 
-public final class EventHandlers {
+public final class EventHandlers implements Utility {
     private EventHandlers() {}
 
     public static EventHandler<KeyEvent> commitOnEnterHandler(@NotNull Node node) {

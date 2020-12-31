@@ -1,8 +1,16 @@
 package dev.dmitrij.kuzmiciov.app.util.file;
 
+import dev.dmitrij.kuzmiciov.app.util.Utility;
 import javafx.stage.FileChooser;
 
-public abstract class FileManager {
+/**
+ * This class is a base for {@link Loader} and {@link Saver} classes for this application.
+ * It contains the enum, describing the file extensions that are supported in this application
+ * and an instance of {@link FileChooser} with those extensions.
+ * @see Extensions
+ */
+
+public abstract class FileManager implements Utility {
     protected final static FileChooser fileChooser = new FileChooser();
 
     static {
@@ -11,7 +19,11 @@ public abstract class FileManager {
         fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
     }
 
-    protected enum Extensions {
+    /**
+     * These file extensions are supported in this application.
+     * @see javafx.stage.FileChooser.ExtensionFilter
+     */
+    public enum Extensions {
         CSV ("Comma separated values", "*.csv"),
         XLSX ("Excel file", "*.xlsx"),
         PDF ("PDF file", "*.pdf");

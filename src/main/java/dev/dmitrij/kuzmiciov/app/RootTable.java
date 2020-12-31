@@ -1,6 +1,5 @@
 package dev.dmitrij.kuzmiciov.app;
 
-import dev.dmitrij.kuzmiciov.app.controller.RootController;
 import dev.dmitrij.kuzmiciov.app.data.Mark;
 import dev.dmitrij.kuzmiciov.app.data.Student;
 import dev.dmitrij.kuzmiciov.app.util.AppMath;
@@ -39,9 +38,24 @@ public class RootTable extends TableView<Student> {
         firstNameColumn.setCellValueFactory(new PropertyValueFactory<>(Student.FIRST_NAME_PROPERTY_NAME));
         lastNameColumn.setCellValueFactory(new PropertyValueFactory<>(Student.LAST_NAME_PROPERTY_NAME));
 
-        for(int i = 0; i < 31; ++i) {
-            var column = new TableColumn<Student, Mark>(String.format("%02d", i + 1));
+        for(var i = new AtomicInteger(); i.get() < 31; i.incrementAndGet()) {
+            var column = new TableColumn<Student, Mark>(String.format("%02d", i.get() + 1));
             column.setMaxWidth(50);
+
+            /* FIXME: doesn't work
+            var cell = new CheckBoxTableCell<Student, Mark>();
+
+            column.setCellValueFactory(cellDataFeatures -> new ObjectBinding<>() {
+                final int day = i.get() + 1;
+                @Override
+                protected Mark computeValue() {
+                    var student = cellDataFeatures.getValue();
+                    if(monthPicker.getValue().lengthOfMonth() < day)
+                        return null;
+                    return student.MARKS.get(LocalDate.of(monthPicker.getValue().getYear(), monthPicker.getValue().getMonth(), day));
+                }
+            });
+             */
             markColumns.add(column);
         }
 
@@ -55,13 +69,7 @@ public class RootTable extends TableView<Student> {
                     }
                     markColumns.get(i - 1).setVisible(true);
                 }
-                var group = RootController.getInstance().getCurrentGroup();
-                assert (group != null);
 
-                for(var student : group.getStudents()) {
-                    assert(student != null);
-                    //TODO: add student marks
-                }
             }
         });
 

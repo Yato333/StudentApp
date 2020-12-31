@@ -1,6 +1,6 @@
 package dev.dmitrij.kuzmiciov.app.util;
 
-public final class AppMath {
+public final class AppMath implements Utility {
     private AppMath() {}
 
     public static float round(float n, int precision) {

@@ -5,13 +5,14 @@ import dev.dmitrij.kuzmiciov.app.RootTable;
 import dev.dmitrij.kuzmiciov.app.data.Group;
 import dev.dmitrij.kuzmiciov.app.data.Student;
 import dev.dmitrij.kuzmiciov.app.data.StudyYear;
-import dev.dmitrij.kuzmiciov.app.util.LTDateConverter;
-import dev.dmitrij.kuzmiciov.app.util.factory.RedWeekendDaysDayCellFactory;
-import dev.dmitrij.kuzmiciov.app.util.Regexes;
 import dev.dmitrij.kuzmiciov.app.util.EventHandlers;
+import dev.dmitrij.kuzmiciov.app.util.LTDateConverter;
+import dev.dmitrij.kuzmiciov.app.util.Regexes;
+import dev.dmitrij.kuzmiciov.app.util.factory.RedWeekendDaysDayCellFactory;
 import dev.dmitrij.kuzmiciov.app.util.file.Loader;
 import dev.dmitrij.kuzmiciov.app.util.file.Saver;
 import javafx.application.Platform;
+import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
@@ -25,7 +26,6 @@ import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import org.jetbrains.annotations.Nullable;
 
-import java.time.Year;
 import java.time.YearMonth;
 import java.util.Comparator;
 
@@ -152,29 +152,7 @@ public final class RootController extends Controller {
         });
 
         var setStudyYearButton = new Button("Set Study Year");
-        setStudyYearButton.setOnAction(e -> {
-            ObservableList<Year> yearList = FXCollections.observableArrayList();
-            for(Year year = Year.now().minusYears(5); !year.isAfter(Year.now().plusYears(5)); year = year.plusYears(1))
-                yearList.add(year);
-
-            var yearSelector = new ComboBox<>(yearList);
-            yearSelector.getSelectionModel().select(Year.now());
-            yearSelector.setVisibleRowCount(10);
-
-            Dialog<Year> dialog = new Dialog<>();
-            dialog.setHeaderText("Select Study Year");
-            dialog.initModality(Modality.APPLICATION_MODAL);
-            dialog.getDialogPane().setContent(new StackPane(yearSelector));
-            dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-            dialog.setResultConverter(buttonType -> {
-                if(buttonType == ButtonType.OK)
-                    return yearSelector.getValue();
-                return null;
-            });
-
-            var resultYear = dialog.showAndWait();
-            resultYear.ifPresent(year -> App.setCurrentYear(new StudyYear(year.getValue())));
-        });
+        setStudyYearButton.setOnAction(e -> onSetStudyYearButton());
 
         var monthPickerWrapper = new VBox(10, setStudyYearButton, monthPicker);
         monthPickerWrapper.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
@@ -251,8 +229,11 @@ public final class RootController extends Controller {
         removeGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
     }
 
+    public ObjectProperty<Group> currentGroupProperty() {
+        return groupChoiceBox.valueProperty();
+    }
     public @Nullable Group getCurrentGroup() {
-        return groupChoiceBox.getValue();
+        return currentGroupProperty().get();
     }
 
     @FXML
@@ -344,5 +325,30 @@ public final class RootController extends Controller {
                     groupChoiceBox.getSelectionModel().selectNext();
             }
         });
+    }
+
+    private void onSetStudyYearButton() {
+        ObservableList<StudyYear> yearList = FXCollections.observableArrayList();
+        for(int y = App.getCurrentYear().startDate.getYear() - 5; y < App.getCurrentYear().endDate.getYear() + 5; ++y)
+            yearList.add(new StudyYear(y));
+
+        var yearSelector = new ComboBox<>(yearList);
+        yearSelector.getSelectionModel().select(App.getCurrentYear());
+
+        yearSelector.setVisibleRowCount(10);
+
+        Dialog<StudyYear> dialog = new Dialog<>();
+        dialog.setHeaderText("Select Study Year");
+        dialog.initModality(Modality.APPLICATION_MODAL);
+        dialog.getDialogPane().setContent(new StackPane(yearSelector));
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
+        dialog.setResultConverter(buttonType -> {
+            if(buttonType == ButtonType.OK)
+                return yearSelector.getValue();
+            return null;
+        });
+
+        var resultYear = dialog.showAndWait();
+        resultYear.ifPresent(App::setCurrentYear);
     }
 }

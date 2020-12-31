@@ -17,7 +17,7 @@ public abstract class Controller {
      * This method is called automatically by the {@link javafx.fxml.FXMLLoader FXMLLoader} class to
      * initialize all the nodes captured by it.
      * <p/>
-     * <u><b>Warning!</b></u> Do not call this method manually if this object was created manually because some of its
+     * <u><b>Warning!</b></u> The developer should not call this method if this object was created manually because some of its
      * fields might be not initialized and {@link NullPointerException} might be thrown.
      * @throws InitError if something went wrong
      * @implNote In this method you should finish stylizing all of the nodes

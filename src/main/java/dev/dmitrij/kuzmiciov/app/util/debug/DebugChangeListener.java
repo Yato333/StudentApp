@@ -4,7 +4,6 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import org.jetbrains.annotations.NotNull;
 
-import java.io.OutputStream;
 import java.io.PrintStream;
 
 public class DebugChangeListener<E> implements ChangeListener<E> {
