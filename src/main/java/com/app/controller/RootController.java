@@ -1,16 +1,17 @@
-package dev.dmitrij.kuzmiciov.app.controller;
+package com.app.controller;
 
-import dev.dmitrij.kuzmiciov.app.App;
-import dev.dmitrij.kuzmiciov.app.RootTable;
-import dev.dmitrij.kuzmiciov.app.data.Group;
-import dev.dmitrij.kuzmiciov.app.data.Student;
-import dev.dmitrij.kuzmiciov.app.data.StudyYear;
-import dev.dmitrij.kuzmiciov.app.util.EventHandlers;
-import dev.dmitrij.kuzmiciov.app.util.LTDateConverter;
-import dev.dmitrij.kuzmiciov.app.util.Regexes;
-import dev.dmitrij.kuzmiciov.app.util.factory.RedWeekendDaysDayCellFactory;
-import dev.dmitrij.kuzmiciov.app.util.file.Loader;
-import dev.dmitrij.kuzmiciov.app.util.file.Saver;
+import com.app.App;
+import com.app.RootTable;
+import com.app.SetMarksWindow;
+import com.app.data.Group;
+import com.app.util.EventHandlers;
+import com.app.util.LTDateConverter;
+import com.app.util.Regexes;
+import com.app.util.factory.RedWeekendDaysDayCellFactory;
+import com.app.util.file.Loader;
+import com.app.util.file.Saver;
+import com.app.data.Student;
+import com.app.data.StudyYear;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
@@ -41,7 +42,6 @@ public final class RootController extends Controller {
         return instance;
     }
 
-    // Nodes loaded by FXML loader
     @FXML
     private BorderPane root;
     @FXML
@@ -54,124 +54,32 @@ public final class RootController extends Controller {
         groupChoiceBox;
     @FXML
     private Button
+        setMarksButton,
         addStudentButton,
         editGroupButton,
         removeGroupButton;
-
-    // Controls for entering marks for a certain day
     @FXML
     private DatePicker datePicker;
-    @FXML
-    private Button setMarksButton;
 
-    // Table Area nodes
+    // Table area nodes
     private TextField groupName;
     private ComboBox<YearMonth> monthPicker;
     private RootTable table;
 
-    /**
-     * Default constructor, required by implSpec
-     */
-    public RootController() {
-        instance = this;
-    }
-
-    private BorderPane createTableHeader() {
-        var tableHeader = new BorderPane();
-
-        // Handling group name label
-        groupName = new TextField();
-        groupName.setAlignment(Pos.CENTER);
-        groupName.setMaxWidth(500);
-        var groupNameDefaultStyle = groupName.getStyle();
-        var groupNameStyle = "-fx-background-color: transparent; -fx-background-insets: 0px";
-        groupName.setStyle(groupNameStyle);
-        groupName.setEditable(false);
-
-        // Making it commit change on ENTER
-        groupName.setOnKeyPressed(EventHandlers.commitOnEnterHandler(groupName));
-
-        // Handling group name editing
-        groupName.focusedProperty().addListener((obsVal, wasFocused, nowFocused) -> {
-            if(!nowFocused) {
-                if(groupName.getText().strip().matches(Regexes.GROUP_EN.regex)) {
-                    var name = groupName.getText().strip();
-                    groupChoiceBox.getValue().setName(name);
-
-                    groupName.setStyle(groupNameStyle);
-                    groupName.setEditable(false);
-
-                    var selModel = groupChoiceBox.getSelectionModel();
-                    var selectedItem = selModel.getSelectedItem();
-                    selModel.clearSelection();
-                    groupChoiceBox.getItems().sort(Comparator.comparing(Group::getName));
-                    selModel.select(selectedItem);
-                } else {
-                    groupName.clear();
-                    groupName.requestFocus();
-                }
-            }
-        });
-
-        // Constricting input size
-        groupName.textProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue.length() > Group.MAX_NAME_LENGTH) {
-                if(newValue.length() == Group.MAX_NAME_LENGTH + 1)
-                    groupName.deletePreviousChar();
-                else
-                    groupName.setText(groupName.getText().substring(0, 30));
-            }
-        });
-
-        tableHeader.setCenter(groupName);
-
-        // Creating the 'edit group name' button
-        var editImage = new Image("/img/edit_icon.png", 16, 16, true, true);
-        var editButton = new Button();
-        editButton.setGraphic(new ImageView(editImage));
-        editButton.setVisible(false);
-        editButton.setTooltip(new Tooltip("Edit group name"));
-        editButton.setOnAction(e -> {
-            groupName.setStyle(groupNameDefaultStyle);
-            groupName.setEditable(true);
-            groupName.requestFocus();
-        });
-        editButton.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
-        tableHeader.setLeft(editButton);
-
-        monthPicker = new ComboBox<>();
-        monthPicker.setItems(App.getCurrentYear().getTotalMonthsUnmodifiable());
-        monthPicker.getSelectionModel().selectFirst();
-        monthPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue != null && !YearMonth.of(datePicker.getValue().getYear(), datePicker.getValue().getMonth()).equals(newValue))
-                datePicker.setValue(newValue.atDay(1));
-        });
-        App.currentYearProperty().addListener((observable, oldValue, newValue) -> {
-            monthPicker.setItems(App.getCurrentYear().getTotalMonthsUnmodifiable());
-            monthPicker.getSelectionModel().selectFirst();
-        });
-
-        var setStudyYearButton = new Button("Set Study Year");
-        setStudyYearButton.setOnAction(e -> onSetStudyYearButton());
-
-        var monthPickerWrapper = new VBox(10, setStudyYearButton, monthPicker);
-        monthPickerWrapper.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
-
-        tableHeader.setRight(monthPickerWrapper);
-
-        return tableHeader;
-    }
 
     /**
      * {@inheritDoc}
      */
     @Override @FXML
     protected void initialize() {
+        instance = this;
+
         // Assigning toolbar buttons their actions
         openButton.setOnAction(e -> Loader.load());
         saveButton.setOnAction(e -> Saver.save());
         closeButton.setOnAction(e -> App.close());
 
+        // Creating the area at the top of the table(Group name, edit name button, study year selector)
         var tableHeader = createTableHeader();
 
         // Creating the table
@@ -217,23 +125,121 @@ public final class RootController extends Controller {
             }
         });
 
-        // Handle button availability for the user
+        // If no group is selected in the group selector then these buttons should be disabled
         setMarksButton.disableProperty().bind(
                 groupChoiceBox.valueProperty().isNull().or (
-                datePicker.valueProperty().isNull()).or (
-                monthPicker.valueProperty().isNull())
+                        datePicker.valueProperty().isNull()).or (
+                        monthPicker.valueProperty().isNull())
         );
-
         addStudentButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         editGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         removeGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
     }
+    
+    /**
+     * Creates and returns a node, representing the area at the top of the table
+     */
+    private BorderPane createTableHeader() {
+        var tableHeader = new BorderPane();
+
+        // Configuring the group name Control
+        groupName = new TextField();
+        groupName.setAlignment(Pos.CENTER);
+        groupName.setMaxWidth(500);
+        var groupNameDefaultStyle = groupName.getStyle();
+        var groupNameStyle = "-fx-background-color: transparent; -fx-background-insets: 0px";
+        groupName.setStyle(groupNameStyle);
+        groupName.setEditable(false);
+
+        // Making it commit change on ENTER
+        groupName.setOnKeyPressed(EventHandlers.commitOnEnterHandler(groupName));
+
+        // Handling group name editing
+        groupName.focusedProperty().addListener((obsVal, wasFocused, nowFocused) -> {
+            if(!nowFocused) {
+                var name = groupName.getText().strip();
+
+                // Any name with not empty length is considered valid
+                if(name.length() > 0) {
+                    groupChoiceBox.getValue().setName(name);
+
+                    groupName.setStyle(groupNameStyle);
+                    groupName.setEditable(false);
+
+                    var selModel = groupChoiceBox.getSelectionModel();
+                    var selectedItem = selModel.getSelectedItem();
+                    selModel.clearSelection();
+                    groupChoiceBox.getItems().sort(Comparator.comparing(Group::getName));
+                    selModel.select(selectedItem);
+                } else // If it is not valid, then nameField should stay focused
+                    groupName.requestFocus();
+            }
+        });
+
+        // Constricting input size
+        groupName.textProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue.length() > Group.MAX_NAME_LENGTH) {
+                if(newValue.length() == Group.MAX_NAME_LENGTH + 1)
+                    groupName.deletePreviousChar();
+                else
+                    groupName.setText(groupName.getText().substring(0, 30));
+            }
+        });
+
+        tableHeader.setCenter(groupName);
+
+        // Creating the 'edit group name' button
+        var editImage = new Image("/img/edit_icon.png", 16, 16, true, true);
+        var editButton = new Button();
+        editButton.setGraphic(new ImageView(editImage));
+        editButton.setVisible(false);
+        editButton.setTooltip(new Tooltip("Edit group name"));
+        editButton.setOnAction(e -> {
+            groupName.setStyle(groupNameDefaultStyle);
+            groupName.setEditable(true);
+            groupName.requestFocus();
+        });
+        editButton.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
+        tableHeader.setLeft(editButton);
+
+        // Configuring the month picker
+        monthPicker = new ComboBox<>();
+        monthPicker.setItems(App.getCurrentYear().getTotalMonthsUnmodifiable());
+        monthPicker.getSelectionModel().selectFirst();
+        monthPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if(newValue != null && !YearMonth.of(datePicker.getValue().getYear(), datePicker.getValue().getMonth()).equals(newValue))
+                datePicker.setValue(newValue.atDay(1));
+        });
+        App.currentYearProperty().addListener((observable, oldValue, newValue) -> {
+            monthPicker.setItems(App.getCurrentYear().getTotalMonthsUnmodifiable());
+            monthPicker.getSelectionModel().selectFirst();
+        });
+
+        // Configuring the 'set study year' button
+        var setStudyYearButton = new Button("Set Study Year");
+        setStudyYearButton.setOnAction(e -> onSetStudyYearButton());
+
+        // Putting all the nodes in a Pane
+        var monthPickerWrapper = new VBox(10, setStudyYearButton, monthPicker);
+        monthPickerWrapper.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
+
+        tableHeader.setRight(monthPickerWrapper);
+
+        return tableHeader;
+    }
+
 
     public ObjectProperty<Group> currentGroupProperty() {
         return groupChoiceBox.valueProperty();
     }
     public @Nullable Group getCurrentGroup() {
         return currentGroupProperty().get();
+    }
+    public ComboBox<Group> getGroupChoiceBox() {
+        return groupChoiceBox;
+    }
+    public DatePicker getDatePicker() {
+        return datePicker;
     }
 
     @FXML
@@ -244,7 +250,7 @@ public final class RootController extends Controller {
 
     @FXML
     private void onSetMarksButton() {
-
+        new SetMarksWindow(datePicker.getValue()).showAndWait();
     }
 
     @FXML

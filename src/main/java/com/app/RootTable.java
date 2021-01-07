@@ -1,8 +1,8 @@
-package dev.dmitrij.kuzmiciov.app;
+package com.app;
 
-import dev.dmitrij.kuzmiciov.app.data.Mark;
-import dev.dmitrij.kuzmiciov.app.data.Student;
-import dev.dmitrij.kuzmiciov.app.util.AppMath;
+import com.app.data.Mark;
+import com.app.data.Student;
+import com.app.util.AppMath;
 import javafx.beans.binding.ObjectBinding;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -13,6 +13,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Unmodifiable;
 
+import java.time.LocalDate;
 import java.time.YearMonth;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -38,38 +39,28 @@ public class RootTable extends TableView<Student> {
         firstNameColumn.setCellValueFactory(new PropertyValueFactory<>(Student.FIRST_NAME_PROPERTY_NAME));
         lastNameColumn.setCellValueFactory(new PropertyValueFactory<>(Student.LAST_NAME_PROPERTY_NAME));
 
-        for(var i = new AtomicInteger(); i.get() < 31; i.incrementAndGet()) {
-            var column = new TableColumn<Student, Mark>(String.format("%02d", i.get() + 1));
+        for(int i = 0; i < 31; ++i) {
+            var column = new TableColumn<Student, Mark>(String.format("%02d", i + 1));
             column.setMaxWidth(50);
-
-            /* FIXME: doesn't work
-            var cell = new CheckBoxTableCell<Student, Mark>();
-
-            column.setCellValueFactory(cellDataFeatures -> new ObjectBinding<>() {
-                final int day = i.get() + 1;
-                @Override
-                protected Mark computeValue() {
-                    var student = cellDataFeatures.getValue();
-                    if(monthPicker.getValue().lengthOfMonth() < day)
-                        return null;
-                    return student.MARKS.get(LocalDate.of(monthPicker.getValue().getYear(), monthPicker.getValue().getMonth(), day));
-                }
-            });
-             */
             markColumns.add(column);
         }
 
         monthPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue != null && oldValue != null && !newValue.getMonth().equals(oldValue.getMonth())) {
-                for (int i = 29; i <= 31; ++i) {
-                    if (newValue.getMonth().length(newValue.isLeapYear()) < i) {
-                        for (int j = i; j <= 31; ++j)
-                            markColumns.get(j - 1).setVisible(false);
-                        break;
-                    }
-                    markColumns.get(i - 1).setVisible(true);
+                for(int i = 1; i <= 31; ++i) {
+                    if (newValue.getMonth().length(newValue.isLeapYear()) >= i) {
+                        markColumns.get(i - 1).setVisible(true);
+                        int _i = i;
+                        markColumns.get(i - 1).setCellValueFactory(cellDataFeatures -> new ObjectBinding<>() {
+                            @Override
+                            protected Mark computeValue() {
+                                var date = LocalDate.of(newValue.getYear(), newValue.getMonth(), _i);
+                                return cellDataFeatures.getValue().MARKS.get(date);
+                            }
+                        });
+                    } else
+                        markColumns.get(i - 1).setVisible(false);
                 }
-
             }
         });
 

@@ -1,6 +1,6 @@
-package dev.dmitrij.kuzmiciov.app;
+package com.app;
 
-import dev.dmitrij.kuzmiciov.app.data.StudyYear;
+import com.app.data.StudyYear;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
@@ -25,14 +25,9 @@ public class App extends Application {
     private static Stage primaryStage;
 
     private static Pane root;
-    private static Stage setMarksStage;
 
     private static void load() throws IOException {
         root = FXMLLoader.load(App.class.getResource("/fxml/root.fxml"));
-        Pane setMarksRoot = FXMLLoader.load(App.class.getResource("/fxml/setMarksWindow.fxml"));
-        setMarksStage = new Stage();
-        setMarksStage.setScene(new Scene(setMarksRoot));
-        // TODO: implement multithreading if it is too slow
     }
 
     private static final ObjectProperty<StudyYear> currentYear = new SimpleObjectProperty<>(new StudyYear(2019));
@@ -66,7 +61,6 @@ public class App extends Application {
     }
 
     /**
-     *
      * @return a running instance of this class
      */
     public static App getInstance() {

@@ -1,4 +1,4 @@
-package dev.dmitrij.kuzmiciov.app.util;
+package com.app.util;
 
 import javafx.util.StringConverter;
 

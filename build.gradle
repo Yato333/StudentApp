@@ -5,7 +5,7 @@ plugins {
     id 'org.beryx.jlink' version '2.23.0'
 }
 
-group 'dev.dmitrij.kuzmiciov'
+group 'com.app'
 version '0.1-alpha'
 
 repositories {
@@ -26,7 +26,7 @@ dependencies {
 javafx {
     version = "15.0.1"
     modules = [ 'javafx.controls', 'javafx.fxml' ]
-    mainClassName = 'dev.dmitrij.kuzmiciov.app.App'
+    mainClassName = 'com.app.App'
 }
 
 jlink {

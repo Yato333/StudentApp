@@ -1,10 +1,12 @@
-package dev.dmitrij.kuzmiciov.app.data;
+package com.app.data;
 
+import javafx.beans.property.ListProperty;
+import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collection;
 
 public class Group {
     public final static int MAX_NAME_LENGTH = 30;
@@ -17,9 +19,12 @@ public class Group {
         this.name = name;
     }
 
-    private final ArrayList<Student> students = new ArrayList<>();
+    private final ListProperty<Student> students = new SimpleListProperty<>(this, "studentList", FXCollections.observableArrayList());
     public ObservableList<Student> getStudents() {
-        return FXCollections.observableList(students);
+        return students.get();
+    }
+    public ListProperty<Student> studentsProperty() {
+        return students;
     }
 
     public Group() {

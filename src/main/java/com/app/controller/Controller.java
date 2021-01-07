@@ -1,4 +1,4 @@
-package dev.dmitrij.kuzmiciov.app.controller;
+package com.app.controller;
 
 import javafx.fxml.FXML;
 import javafx.scene.Node;

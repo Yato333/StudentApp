@@ -1,4 +1,4 @@
-package dev.dmitrij.kuzmiciov.app.util;
+package com.app.util;
 
 /**
  * Classes, implementing this interface should contain a set of functions - public static methods.

@@ -1,10 +1,12 @@
-package dev.dmitrij.kuzmiciov.app.data;
+package com.app.data;
 
+import com.app.RootTable;
 import javafx.beans.property.FloatProperty;
 import javafx.beans.property.SimpleFloatProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.MapChangeListener;
 import javafx.collections.ObservableMap;
 
 import java.time.LocalDate;
@@ -59,5 +61,12 @@ public class Student {
         setFirstName(firstName);
         setLastName(lastName);
         setAverage(0);
+
+        MARKS.addListener((MapChangeListener<? super LocalDate, ? super Mark>) x -> RootTable.getInstance().refresh());
+    }
+
+    @Override
+    public String toString() {
+        return firstName.get() + " " + lastName.get();
     }
 }

@@ -1,12 +1,12 @@
-package dev.dmitrij.kuzmiciov.app.util.file;
+package com.app.util.file;
 
-import dev.dmitrij.kuzmiciov.app.App;
+import com.app.App;
 
 import java.io.File;
 
 /**
  * This file manager saves data stored in this application in a file selected by the user.
- * @see dev.dmitrij.kuzmiciov.app.util.file.FileManager.Extensions Supported extensions
+ * @see Extensions Supported extensions
  */
 
 public final class Saver extends FileManager {

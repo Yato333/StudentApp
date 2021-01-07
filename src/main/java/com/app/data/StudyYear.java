@@ -1,6 +1,6 @@
-package dev.dmitrij.kuzmiciov.app.data;
+package com.app.data;
 
-import dev.dmitrij.kuzmiciov.app.util.TimePeriod;
+import com.app.util.TimePeriod;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.*;

@@ -1,4 +1,4 @@
-package dev.dmitrij.kuzmiciov.app.util.debug;
+package com.app.util.debug;
 
 import org.jetbrains.annotations.NotNull;
 

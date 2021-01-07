@@ -1,6 +1,6 @@
-package dev.dmitrij.kuzmiciov.app.util.file;
+package com.app.util.file;
 
-import dev.dmitrij.kuzmiciov.app.util.Utility;
+import com.app.util.Utility;
 import javafx.stage.FileChooser;
 
 /**

@@ -1,4 +1,4 @@
-package dev.dmitrij.kuzmiciov.app.util;
+package com.app.util;
 
 public final class AppMath implements Utility {
     private AppMath() {}

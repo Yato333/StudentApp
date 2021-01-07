@@ -1,4 +1,4 @@
-package dev.dmitrij.kuzmiciov.app.data;
+package com.app.data;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -9,6 +9,10 @@ public class Mark {
     private boolean present = true;
     private Integer mark = null;
     private String comment = "";
+
+    public Mark() {
+        this(true);
+    }
 
     public Mark(@Nullable Integer value) {
         setMark(value);
@@ -49,6 +53,7 @@ public class Mark {
     public void setMark(@Nullable Integer mark) {
         if(mark != null && (mark < MIN_MARK || mark > MAX_MARK))
             throw new IllegalArgumentException("Mark has to be in range [" + MIN_MARK + "; " + MAX_MARK + "]");
+        present = true;
         this.mark = mark;
     }
     public void setComment(@NotNull String comment) {
@@ -57,6 +62,6 @@ public class Mark {
 
     @Override
     public String toString() {
-        return present ? (mark == null ? "" : String.valueOf(mark)) : "n";
+        return present ? (mark == null ? "-" : String.valueOf(mark)) : "n";
     }
 }
