@@ -29,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.YearMonth;
 import java.util.Comparator;
+import java.util.List;
 
 /**
  * This is a Controller for the root of the {@link javafx.scene.Scene} of this {@link javafx.application.Application}
@@ -134,8 +135,15 @@ public final class RootController extends Controller {
         addStudentButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         editGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         removeGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
+
+        addDataForTesting();
     }
-    
+
+    private void addDataForTesting() {
+        groupChoiceBox.getItems().add(new Group("JAVA", List.of(new Student("Dmitrij", "Kuzmiciov"), new Student("Petras", "Jonaitis"))));
+        groupChoiceBox.getSelectionModel().selectFirst();
+    }
+
     /**
      * Creates and returns a node, representing the area at the top of the table
      */
@@ -251,6 +259,16 @@ public final class RootController extends Controller {
     @FXML
     private void onSetMarksButton() {
         new SetMarksWindow(datePicker.getValue()).showAndWait();
+        final int currentMonth = monthPicker.getSelectionModel().getSelectedIndex();
+        final var currentDate = datePicker.getValue();
+        if(currentMonth == 0)
+            monthPicker.getSelectionModel().select(1);
+        else
+            monthPicker.getSelectionModel().selectFirst();
+        Platform.runLater(() -> {
+            monthPicker.getSelectionModel().select(currentMonth);
+            datePicker.setValue(currentDate);
+        });
     }
 
     @FXML

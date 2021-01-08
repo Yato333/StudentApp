@@ -62,6 +62,6 @@ public class Mark {
 
     @Override
     public String toString() {
-        return present ? (mark == null ? "-" : String.valueOf(mark)) : "n";
+        return present ? (mark == null ? "" : String.valueOf(mark)) : "n";
     }
 }

@@ -20,11 +20,13 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class RootTable extends TableView<Student> {
     private static RootTable instance;
+
     public static RootTable getInstance() {
         return instance;
     }
 
     private final ArrayList<TableColumn<Student, Mark>> markColumns = new ArrayList<>();
+
     public @Unmodifiable ObservableList<TableColumn<Student, Mark>> getMarkColumns() {
         return FXCollections.unmodifiableObservableList(FXCollections.observableList(markColumns));
     }
@@ -39,23 +41,23 @@ public class RootTable extends TableView<Student> {
         firstNameColumn.setCellValueFactory(new PropertyValueFactory<>(Student.FIRST_NAME_PROPERTY_NAME));
         lastNameColumn.setCellValueFactory(new PropertyValueFactory<>(Student.LAST_NAME_PROPERTY_NAME));
 
-        for(int i = 0; i < 31; ++i) {
+        for (int i = 0; i < 31; ++i) {
             var column = new TableColumn<Student, Mark>(String.format("%02d", i + 1));
             column.setMaxWidth(50);
             markColumns.add(column);
         }
 
         monthPicker.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue != null && oldValue != null && !newValue.getMonth().equals(oldValue.getMonth())) {
-                for(int i = 1; i <= 31; ++i) {
+            if (newValue != null) {
+                for (int i = 1; i <= 31; ++i) {
                     if (newValue.getMonth().length(newValue.isLeapYear()) >= i) {
                         markColumns.get(i - 1).setVisible(true);
                         int _i = i;
                         markColumns.get(i - 1).setCellValueFactory(cellDataFeatures -> new ObjectBinding<>() {
                             @Override
                             protected Mark computeValue() {
-                                var date = LocalDate.of(newValue.getYear(), newValue.getMonth(), _i);
-                                return cellDataFeatures.getValue().MARKS.get(date);
+                            var date = LocalDate.of(newValue.getYear(), newValue.getMonth(), _i);
+                            return cellDataFeatures.getValue().MARKS.get(date);
                             }
                         });
                     } else
@@ -68,19 +70,19 @@ public class RootTable extends TableView<Student> {
             @Override
             protected String computeValue() {
                 AtomicInteger
-                    i = new AtomicInteger(),
-                    sum = new AtomicInteger();
+                        i = new AtomicInteger(),
+                        sum = new AtomicInteger();
                 markColumns.forEach(markColumn -> {
                     var cellValueForStudent = markColumn.getCellObservableValue(cellDataFeatures.getValue());
-                    if(cellValueForStudent != null && cellValueForStudent.getValue() != null) {
+                    if (cellValueForStudent != null && cellValueForStudent.getValue() != null) {
                         var mark = cellValueForStudent.getValue().getMark();
-                        if(mark != null) {
+                        if (mark != null) {
                             sum.addAndGet(mark);
                             i.incrementAndGet();
                         }
                     }
                 });
-                float average = (float)(sum.get()) / (float)(i.get());
+                float average = (float) (sum.get()) / (float) (i.get());
                 return i.get() == 0 ? "-" : String.valueOf(AppMath.round(average, 2));
             }
         });
