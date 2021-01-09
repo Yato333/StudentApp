@@ -11,8 +11,10 @@ public final class EventHandlers implements Utility {
 
     public static EventHandler<KeyEvent> commitOnEnterHandler(@NotNull Node node) {
         return keyEvent -> {
-            if(keyEvent.getCode() == KeyCode.ENTER)
+            if(keyEvent.getCode() == KeyCode.ENTER) {
                 node.getParent().requestFocus();
+                keyEvent.consume();
+            }
         };
     }
 }

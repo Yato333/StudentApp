@@ -1,4 +1,4 @@
-package com.app;
+package com.app.window;
 
 import com.app.controller.RootController;
 import com.app.data.Mark;

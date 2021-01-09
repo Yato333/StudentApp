@@ -50,8 +50,10 @@ public class App extends Application {
             load();
             primaryStage.setScene(new Scene(root));
             primaryStage.setTitle("Student App");
-            primaryStage.setMinHeight(720);
-            primaryStage.setMinWidth(1280);
+            Platform.runLater(() -> {
+                primaryStage.setMinHeight(720);
+                primaryStage.setMinWidth(1280);
+            });
         } catch (Exception e) {
             e.printStackTrace();
             Platform.exit();

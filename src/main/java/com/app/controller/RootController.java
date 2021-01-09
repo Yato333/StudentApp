@@ -2,16 +2,17 @@ package com.app.controller;
 
 import com.app.App;
 import com.app.RootTable;
-import com.app.SetMarksWindow;
 import com.app.data.Group;
+import com.app.data.Student;
+import com.app.data.StudyYear;
 import com.app.util.EventHandlers;
 import com.app.util.LTDateConverter;
 import com.app.util.Regexes;
 import com.app.util.factory.RedWeekendDaysDayCellFactory;
 import com.app.util.file.Loader;
 import com.app.util.file.Saver;
-import com.app.data.Student;
-import com.app.data.StudyYear;
+import com.app.window.EditGroupWindow;
+import com.app.window.SetMarksWindow;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
@@ -21,8 +22,6 @@ import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.stage.Modality;
 import org.jetbrains.annotations.Nullable;
@@ -54,8 +53,12 @@ public final class RootController extends Controller {
     private ComboBox<Group>
         groupChoiceBox;
     @FXML
+    private ComboBox<Student>
+        studentSelector;
+    @FXML
     private Button
-        setMarksButton,
+        setMarksForDateButton,
+        setMarksForStudentButton,
         addStudentButton,
         editGroupButton,
         removeGroupButton;
@@ -63,7 +66,7 @@ public final class RootController extends Controller {
     private DatePicker datePicker;
 
     // Table area nodes
-    private TextField groupName;
+    private Label groupName;
     private ComboBox<YearMonth> monthPicker;
     private RootTable table;
 
@@ -100,11 +103,14 @@ public final class RootController extends Controller {
         groupChoiceBox.setPromptText("Select Group");
         groupChoiceBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
             if(newValue == null) {
-                groupName.clear();
+                groupName.setText("");
                 table.setItems(FXCollections.emptyObservableList());
+                studentSelector.getItems().clear();
             } else {
                 groupName.setText(newValue.getName());
                 table.setItems(newValue.getStudents());
+                studentSelector.setItems(newValue.getStudents());
+                studentSelector.getSelectionModel().selectFirst();
             }
         });
 
@@ -127,11 +133,13 @@ public final class RootController extends Controller {
         });
 
         // If no group is selected in the group selector then these buttons should be disabled
-        setMarksButton.disableProperty().bind(
+        setMarksForDateButton.disableProperty().bind(
                 groupChoiceBox.valueProperty().isNull().or (
                         datePicker.valueProperty().isNull()).or (
                         monthPicker.valueProperty().isNull())
         );
+        studentSelector.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
+        setMarksForStudentButton.disableProperty().bind(studentSelector.valueProperty().isNull().or(monthPicker.valueProperty().isNull()));
         addStudentButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         editGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
         removeGroupButton.disableProperty().bind(groupChoiceBox.valueProperty().isNull());
@@ -151,64 +159,11 @@ public final class RootController extends Controller {
         var tableHeader = new BorderPane();
 
         // Configuring the group name Control
-        groupName = new TextField();
+        groupName = new Label();
         groupName.setAlignment(Pos.CENTER);
         groupName.setMaxWidth(500);
-        var groupNameDefaultStyle = groupName.getStyle();
-        var groupNameStyle = "-fx-background-color: transparent; -fx-background-insets: 0px";
-        groupName.setStyle(groupNameStyle);
-        groupName.setEditable(false);
-
-        // Making it commit change on ENTER
-        groupName.setOnKeyPressed(EventHandlers.commitOnEnterHandler(groupName));
-
-        // Handling group name editing
-        groupName.focusedProperty().addListener((obsVal, wasFocused, nowFocused) -> {
-            if(!nowFocused) {
-                var name = groupName.getText().strip();
-
-                // Any name with not empty length is considered valid
-                if(name.length() > 0) {
-                    groupChoiceBox.getValue().setName(name);
-
-                    groupName.setStyle(groupNameStyle);
-                    groupName.setEditable(false);
-
-                    var selModel = groupChoiceBox.getSelectionModel();
-                    var selectedItem = selModel.getSelectedItem();
-                    selModel.clearSelection();
-                    groupChoiceBox.getItems().sort(Comparator.comparing(Group::getName));
-                    selModel.select(selectedItem);
-                } else // If it is not valid, then nameField should stay focused
-                    groupName.requestFocus();
-            }
-        });
-
-        // Constricting input size
-        groupName.textProperty().addListener((observable, oldValue, newValue) -> {
-            if(newValue.length() > Group.MAX_NAME_LENGTH) {
-                if(newValue.length() == Group.MAX_NAME_LENGTH + 1)
-                    groupName.deletePreviousChar();
-                else
-                    groupName.setText(groupName.getText().substring(0, 30));
-            }
-        });
 
         tableHeader.setCenter(groupName);
-
-        // Creating the 'edit group name' button
-        var editImage = new Image("/img/edit_icon.png", 16, 16, true, true);
-        var editButton = new Button();
-        editButton.setGraphic(new ImageView(editImage));
-        editButton.setVisible(false);
-        editButton.setTooltip(new Tooltip("Edit group name"));
-        editButton.setOnAction(e -> {
-            groupName.setStyle(groupNameDefaultStyle);
-            groupName.setEditable(true);
-            groupName.requestFocus();
-        });
-        editButton.visibleProperty().bind(groupChoiceBox.valueProperty().isNotNull());
-        tableHeader.setLeft(editButton);
 
         // Configuring the month picker
         monthPicker = new ComboBox<>();
@@ -236,6 +191,14 @@ public final class RootController extends Controller {
         return tableHeader;
     }
 
+    public void updateGroupNames() {
+        var selModel = groupChoiceBox.getSelectionModel();
+        var selectedItem = selModel.getSelectedItem();
+        selModel.clearSelection();
+        groupChoiceBox.getItems().sort(Comparator.comparing(Group::getName));
+        selModel.select(selectedItem);
+    }
+
 
     public ObjectProperty<Group> currentGroupProperty() {
         return groupChoiceBox.valueProperty();
@@ -257,7 +220,7 @@ public final class RootController extends Controller {
     }
 
     @FXML
-    private void onSetMarksButton() {
+    private void onSetMarksForDateButton() {
         new SetMarksWindow(datePicker.getValue()).showAndWait();
         final int currentMonth = monthPicker.getSelectionModel().getSelectedIndex();
         final var currentDate = datePicker.getValue();
@@ -269,6 +232,11 @@ public final class RootController extends Controller {
             monthPicker.getSelectionModel().select(currentMonth);
             datePicker.setValue(currentDate);
         });
+    }
+
+    @FXML
+    private void onSetMarksForStudentButton() {
+
     }
 
     @FXML
@@ -327,7 +295,8 @@ public final class RootController extends Controller {
 
     @FXML
     private void onEditGroupButton() {
-        // TODO: make edit group window
+        new EditGroupWindow(groupChoiceBox.getValue()).showAndWait();
+        groupChoiceBox.getValue().getStudents().sort(Comparator.comparing(Student::getLastName).thenComparing(Student::getFirstName));
     }
 
     @FXML
