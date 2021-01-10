@@ -12,7 +12,8 @@ import com.app.util.factory.RedWeekendDaysDayCellFactory;
 import com.app.util.file.Loader;
 import com.app.util.file.Saver;
 import com.app.window.EditGroupWindow;
-import com.app.window.SetMarksWindow;
+import com.app.window.SetMarksForDateWindow;
+import com.app.window.SetMarksForStudentWindow;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.collections.FXCollections;
@@ -70,6 +71,18 @@ public final class RootController extends Controller {
     private ComboBox<YearMonth> monthPicker;
     private RootTable table;
 
+    public ObjectProperty<Group> currentGroupProperty() {
+        return groupChoiceBox.valueProperty();
+    }
+    public @Nullable Group getCurrentGroup() {
+        return currentGroupProperty().get();
+    }
+    public ComboBox<Group> getGroupChoiceBox() {
+        return groupChoiceBox;
+    }
+    public DatePicker getDatePicker() {
+        return datePicker;
+    }
 
     /**
      * {@inheritDoc}
@@ -199,29 +212,13 @@ public final class RootController extends Controller {
         selModel.select(selectedItem);
     }
 
-
-    public ObjectProperty<Group> currentGroupProperty() {
-        return groupChoiceBox.valueProperty();
-    }
-    public @Nullable Group getCurrentGroup() {
-        return currentGroupProperty().get();
-    }
-    public ComboBox<Group> getGroupChoiceBox() {
-        return groupChoiceBox;
-    }
-    public DatePicker getDatePicker() {
-        return datePicker;
-    }
-
     @FXML
     private void onAddGroupButton() {
         groupChoiceBox.getItems().add(new Group(String.valueOf(groupChoiceBox.getItems().size() + 1)));
         groupChoiceBox.getSelectionModel().selectLast();
     }
 
-    @FXML
-    private void onSetMarksForDateButton() {
-        new SetMarksWindow(datePicker.getValue()).showAndWait();
+    private void updateTable() {
         final int currentMonth = monthPicker.getSelectionModel().getSelectedIndex();
         final var currentDate = datePicker.getValue();
         if(currentMonth == 0)
@@ -235,8 +232,15 @@ public final class RootController extends Controller {
     }
 
     @FXML
-    private void onSetMarksForStudentButton() {
+    private void onSetMarksForDateButton() {
+        new SetMarksForDateWindow(datePicker.getValue()).showAndWait();
+        updateTable();
+    }
 
+    @FXML
+    private void onSetMarksForStudentButton() {
+        new SetMarksForStudentWindow(studentSelector.getValue(), monthPicker.getValue()).showAndWait();
+        updateTable();
     }
 
     @FXML

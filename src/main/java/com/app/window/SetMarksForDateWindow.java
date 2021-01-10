@@ -20,12 +20,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class SetMarksWindow extends Dialog<Void> {
+public class SetMarksForDateWindow extends Dialog<Void> {
     private static final StringConverter<LocalDate> dateConverter = new LTDateConverter();
 
     private static final StudentMarkingTable studentTable = new StudentMarkingTable();
 
-    public SetMarksWindow(@NotNull LocalDate date) {
+    public SetMarksForDateWindow(@NotNull LocalDate date) {
         setHeaderText("Set marks for " + dateConverter.toString(date));
 
         var students = Objects.requireNonNull(RootController.getInstance().getCurrentGroup()).getStudents();
