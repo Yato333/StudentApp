@@ -1,6 +1,7 @@
 package com.app.util.file;
 
 import com.app.util.Utility;
+import javafx.scene.control.Alert;
 import javafx.stage.FileChooser;
 
 /**
@@ -12,11 +13,20 @@ import javafx.stage.FileChooser;
 
 public abstract class FileManager implements Utility {
     protected final static FileChooser fileChooser = new FileChooser();
-
+    protected final static String LS = System.lineSeparator();
     static {
         for (var ext : Extensions.values())
             fileChooser.getExtensionFilters().add(ext.filter);
         fileChooser.setSelectedExtensionFilter(fileChooser.getExtensionFilters().get(0));
+    }
+
+    protected static void showErrorAlert(Exception e) {
+        var alert = new Alert(Alert.AlertType.ERROR);
+        StringBuilder contentTextBuilder = new StringBuilder();
+        for(var el : e.getStackTrace())
+            contentTextBuilder.append(el.toString()).append(LS);
+        alert.setContentText(contentTextBuilder.toString());
+        alert.showAndWait();
     }
 
     /**

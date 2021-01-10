@@ -348,4 +348,8 @@ public final class RootController extends Controller {
         var resultYear = dialog.showAndWait();
         resultYear.ifPresent(App::setCurrentYear);
     }
+
+    public YearMonth getCurrentMonth() {
+        return monthPicker.getValue();
+    }
 }
